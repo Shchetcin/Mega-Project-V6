@@ -178,6 +178,8 @@
             color: rgba(255,255,255,0.5);
             backdrop-filter: blur(2px);
             pointer-events: none;
+            /* замок не размыт */
+            filter: none;
         }
 
         .shop-grid {
@@ -359,7 +361,7 @@
             font-size: 32px;
             line-height: 1;
             display: inline-block;
-            filter: none; /* отключаем возможные фильтры */
+            filter: none;
         }
 
         @media (max-width: 600px) {
@@ -384,7 +386,7 @@
                             <p>Колонизация Юпитера</p>
                         </div>
                     </div>
-                    <div class="version" style="color: var(--text-dim);">v6.11</div>
+                    <div class="version" style="color: var(--text-dim);">v6.12</div>
                 </div>
                 <div style="display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 15px;">
                     <div style="display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; max-width: 400px;">
@@ -466,7 +468,8 @@
                             <div id="historyTable">Загрузка...</div>
                         </div>
 
-                        <div class="table-container" id="ratingContainer">
+                        <!-- Контейнер рейтинга – скрыт, если нет разведпункта -->
+                        <div class="table-container" id="ratingContainer" style="display: none;">
                             <h3 style="margin-bottom:15px;"><i class="fas fa-chart-line"></i> Рейтинг команд</h3>
                             <div id="ratingTable">Загрузка...</div>
                         </div>
@@ -783,7 +786,7 @@
     <script>
         // ================= КОНФИГУРАЦИЯ =================
         const CONFIG = {
-            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwZnLnuVEUxK5ufg4grie7Bo-ZAaVahuUZmOOROAsr1Yw4yfyiRJFGvHtX1HNRT7pYfzw/exec',
+            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzU7wB_x-QzNmPHCxXUJC1P5Z9WrDyKGyZjQJso8Ujy8Q-LHmoVVJEHVl4tg4YMc690xg/exec',
             ADMIN_PASSWORD: 'org2026',
             REFRESH_INTERVAL: 30000
         };
@@ -953,7 +956,7 @@
             }
         }
 
-        // Функция для получения эмодзи сытости и его цвета (опционально)
+        // Функция для получения эмодзи сытости
         function getFoodEmoji(coverage) {
             if (coverage >= 1) return '😊';
             if (coverage >= 0.8) return '🙂';
@@ -982,6 +985,7 @@
             // Расчёт сытости
             const colonists = currentState.team.colonists || 0;
             const food = currentState.team.foodSupply || 0;
+            // Если колонистов нет, считаем сытость 1 (отлично)
             const coverage = colonists > 0 ? Math.min(1, food / (colonists * 300)) : 1;
             const foodEmoji = getFoodEmoji(coverage);
 
@@ -1093,27 +1097,21 @@
             histHtml += '</table>';
             document.getElementById('historyTable').innerHTML = histHtml;
 
-            // Рейтинг команд
+            // Рейтинг команд – показываем только если есть разведпункт
             const hasRevealRating = currentState.purchases.some(p => p.status === 'функционирует' && p.effect && p.effect.revealRating);
-            let rateHtml = '';
+            const ratingContainer = document.getElementById('ratingContainer');
             if (hasRevealRating) {
-                // Сортировка по убыванию импульсов
+                ratingContainer.style.display = 'block';
                 const sorted = [...currentState.rating].sort((a, b) => b.score - a.score);
-                rateHtml = '<table><tr><th>Место</th><th>Команда</th><th>Импульсы</th></tr>';
+                let rateHtml = '<table><tr><th>Место</th><th>Команда</th><th>Импульсы</th></tr>';
                 sorted.forEach((t, i) => {
                     rateHtml += `<tr ${t.id == currentState.team.id ? 'style="background:rgba(78,84,245,0.3)"' : ''}><td>${i+1}</td><td>${t.name}</td><td>${t.score}</td></tr>`;
                 });
                 rateHtml += '</table>';
+                document.getElementById('ratingTable').innerHTML = rateHtml;
             } else {
-                // Без разведпункта – сортировка по названию (алфавитный порядок)
-                const sortedByName = [...currentState.rating].sort((a, b) => a.name.localeCompare(b.name));
-                rateHtml = '<table><tr><th>Команда</th><th>Баланс</th></tr>';
-                sortedByName.forEach(t => {
-                    rateHtml += `<tr><td>${t.name}</td><td><i class="fas fa-lock" style="color:var(--text-dim);"></i></td></tr>`;
-                });
-                rateHtml += '</table>';
+                ratingContainer.style.display = 'none';
             }
-            document.getElementById('ratingTable').innerHTML = rateHtml;
         }
 
         function showFinalMessage() {
