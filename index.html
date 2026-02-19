@@ -299,7 +299,7 @@
                             <p>Колонизация Юпитера</p>
                         </div>
                     </div>
-                    <div class="version" style="color: var(--text-dim);">v6.1</div>
+                    <div class="version" style="color: var(--text-dim);">v6.2</div>
                 </div>
                 <div style="display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 15px;">
                     <div style="display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; max-width: 400px;">
@@ -451,15 +451,11 @@
                             </div>
                         </div>
                         <div class="table-container">
-                            <h3>Действия</h3>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                                <button onclick="investInFund()" class="btn btn-success">📈 Инвестировать в фонд</button>
-                                <button onclick="takeLoan()" class="btn btn-warning">💰 Взять кредит</button>
-                                <button onclick="repayLoan()" class="btn btn-danger" style="grid-column: span 2;">💸 Погасить кредит (150%)</button>
-                            </div>
+                            <h3>Доступные операции</h3>
+                            <div id="financeActions"></div>
                         </div>
-                        <!-- Блок тотема -->
-                        <div class="table-container">
+                        <!-- Блок тотема (появляется только после постройки) -->
+                        <div id="totemSection" style="display: none;" class="table-container">
                             <h3><i class="fas fa-tree"></i> Тотем колонии</h3>
                             <p>Внесённый номинал: <span id="totemInvested">0</span> ⚡</p>
                             <button onclick="totemContribute()" class="btn btn-warning">🙏 Внести в тотем</button>
@@ -562,10 +558,7 @@
                             </div>
                         </div>
                         <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
-                            <div class="table-container">
-                                <h3><i class="fas fa-tree"></i> Тотем</h3>
-                                <button onclick="finalTotem()" class="btn btn-warning">🏆 Выплатить тотем (x1.5)</button>
-                            </div>
+                            <!-- Блок тотема удалён из админки -->
                             <div class="table-container">
                                 <h3><i class="fas fa-file-contract"></i> Контракты</h3>
                                 <select id="teamContractSelect" class="form-control" style="margin-bottom:12px;"></select>
@@ -675,7 +668,7 @@
         // ================= КОНФИГУРАЦИЯ =================
         const CONFIG = {
             // !!! ЗАМЕНИТЕ НА ВАШ URL ОТ PUBLISHED APPS SCRIPT !!!
-            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbypg5l7seNIb155UFvt5GIY96969I0ZyfjlVXAZcgIVSjWtZ6O9y55wuSuor247v_uYAg/exec',
+            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzklVM71WrX09iqv_kc0ePi5ZWhmUfclyqeuF-BHyjfCVza3eZ59KIH3sOZH6d_5U5wZA/exec',
             ADMIN_PASSWORD: 'org2026',
             REFRESH_INTERVAL: 30000
         };
@@ -905,19 +898,62 @@
             rateHtml += '</table>';
             document.getElementById('ratingTable').innerHTML = rateHtml;
 
-            // Магазин
+            // --- МАГАЗИН С ВЕТКОЙ РАЗВИТИЯ ---
             document.getElementById('shopImpulseBalance').textContent = currentState.team.score;
             let shopHtml = '';
             if (currentState.allItems.length) {
+                // Получаем список ID функционирующих зданий
+                const functionalIds = currentState.purchases
+                    .filter(p => p.status === 'функционирует')
+                    .map(p => p.id);
+
+                // Функция проверки доступности здания по сезонам (линейная ветка)
+                function isItemAvailable(item) {
+                    const id = item.id;
+                    if (id <= 5) return true; // сезон 1 всегда доступен
+                    if (id >= 6 && id <= 9) {
+                        // требуется хотя бы одно здание сезона 1
+                        return functionalIds.some(fid => fid <= 5);
+                    }
+                    if (id >= 10 && id <= 13) {
+                        // требуется хотя бы одно здание сезона 2
+                        return functionalIds.some(fid => fid >= 6 && fid <= 9);
+                    }
+                    if (id >= 14 && id <= 17) {
+                        return functionalIds.some(fid => fid >= 10 && fid <= 13);
+                    }
+                    if (id >= 18 && id <= 21) {
+                        return functionalIds.some(fid => fid >= 14 && fid <= 17);
+                    }
+                    if (id >= 22 && id <= 25) {
+                        return functionalIds.some(fid => fid >= 18 && fid <= 21);
+                    }
+                    // Для остальных (ID > 25) – считаем доступными только при наличии хотя бы одного здания последнего сезона
+                    return functionalIds.some(fid => fid >= 22 && fid <= 25);
+                }
+
                 const purchasedIds = currentState.purchases.map(p => p.id);
                 const hasBoughtStatus = currentState.purchases.some(p => p.status === 'куплено');
+
                 currentState.allItems.forEach(item => {
                     const purchase = currentState.purchases.find(p => p.id === item.id);
                     const status = purchase ? purchase.status : null;
                     const isBought = !!purchase;
                     const isAwaiting = status === 'куплено';
-                    const disabled = isBought || currentState.team.score < item.price || hasBoughtStatus;
+                    const available = isItemAvailable(item);
+                    
+                    // Определяем, доступна ли покупка
+                    const disabled = isBought || currentState.team.score < item.price || hasBoughtStatus || !available;
+                    
+                    let buttonText = 'Купить';
+                    if (isBought) {
+                        buttonText = isAwaiting ? 'Ожидает выдачи' : 'Уже куплено';
+                    } else if (!available) {
+                        buttonText = 'Требуется развитие';
+                    }
+                    
                     const cardClass = isAwaiting ? 'product-card pulse-awaiting' : 'product-card';
+                    
                     shopHtml += `
                         <div class="${cardClass}">
                             <div class="product-icon"><i class="${item.icon}"></i></div>
@@ -925,15 +961,17 @@
                             <div class="product-description">${item.description}</div>
                             <div class="product-price"><i class="fas fa-bolt"></i> ${item.price}</div>
                             <button class="btn-buy" onclick="buyItem(${item.id})" ${disabled ? 'disabled' : ''}>
-                                ${isBought ? (isAwaiting ? 'Ожидает выдачи' : 'Уже куплено') : 'Купить'}
+                                ${buttonText}
                             </button>
                         </div>
                     `;
                 });
-            } else shopHtml = '<p>Товары временно отсутствуют</p>';
+            } else {
+                shopHtml = '<p>Товары временно отсутствуют</p>';
+            }
             document.getElementById('shopItemsGrid').innerHTML = shopHtml;
 
-            // Инвентарь (с кнопками для особых зданий)
+            // --- ИНВЕНТАРЬ ---
             let invHtml = '';
             if (currentState.purchases.length) {
                 currentState.purchases.forEach(item => {
@@ -951,10 +989,37 @@
             } else invHtml = '<p>У вас пока нет купленных зданий.</p>';
             document.getElementById('inventoryGrid').innerHTML = invHtml;
 
-            // Финансы
+            // --- ФИНАНСЫ ---
             document.getElementById('investmentsValue').textContent = currentState.team.investments || 0;
             document.getElementById('loanValue').textContent = currentState.team.loan || 0;
-            document.getElementById('totemInvested').textContent = currentState.team.totemInvested || 0;
+
+            // Проверяем наличие зданий для финансовых операций
+            const hasLoanBuilding = currentState.purchases.some(p => p.status === 'функционирует' && p.effect && p.effect.loan);
+            const hasInvestBuilding = currentState.purchases.some(p => p.status === 'функционирует' && p.effect && p.effect.fund);
+            const hasTotem = currentState.purchases.some(p => p.status === 'функционирует' && p.type === 'тотем');
+
+            let financeActionsHtml = '';
+            if (hasInvestBuilding) {
+                financeActionsHtml += `<button onclick="investInFund()" class="btn btn-success" style="margin-right:10px;">📈 Инвестировать в фонд</button>`;
+            }
+            if (hasLoanBuilding) {
+                financeActionsHtml += `<button onclick="takeLoan()" class="btn btn-warning" style="margin-right:10px;">💰 Взять кредит</button>`;
+            }
+            if (hasLoanBuilding && currentState.team.loan > 0) {
+                financeActionsHtml += `<button onclick="repayLoan()" class="btn btn-danger">💸 Погасить кредит (150%)</button>`;
+            }
+            if (financeActionsHtml === '') {
+                financeActionsHtml = '<p>Нет доступных финансовых операций. Постройте банк или фонд.</p>';
+            }
+            document.getElementById('financeActions').innerHTML = financeActionsHtml;
+
+            // Показываем секцию тотема, если он построен
+            if (hasTotem) {
+                document.getElementById('totemSection').style.display = 'block';
+                document.getElementById('totemInvested').textContent = currentState.team.totemInvested || 0;
+            } else {
+                document.getElementById('totemSection').style.display = 'none';
+            }
         }
 
         function getExtraButton(item) {
@@ -1410,7 +1475,6 @@
                 if (result.success) {
                     showNotification('Товар добавлен', 'success');
                     closeModal('addItemModal');
-                    // очистку полей можно добавить при желании
                     loadAdminData();
                 } else {
                     showNotification(result.data.error || 'Ошибка', 'error');
@@ -1633,23 +1697,6 @@
             } catch (e) { showNotification('Ошибка сети', 'error'); }
         }
 
-        async function finalTotem() {
-            if (!confirm('Выплатить бонус тотема всем командам?')) return;
-            try {
-                const formData = new FormData();
-                formData.append('action', 'finalTotem');
-                formData.append('password', currentState.adminPassword);
-                const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
-                const result = await res.json();
-                if (result.success) {
-                    showNotification('Тотем выплачен', 'success');
-                    loadAdminData();
-                } else {
-                    showNotification(result.data.error || 'Ошибка', 'error');
-                }
-            } catch (e) { showNotification('Ошибка сети', 'error'); }
-        }
-
         async function assignContract() {
             const teamId = document.getElementById('teamContractSelect').value;
             if (!teamId) return showNotification('Выберите команду', 'warning');
@@ -1697,4 +1744,3 @@
     </script>
 </body>
 </html>
-
