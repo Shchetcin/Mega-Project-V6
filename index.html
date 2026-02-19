@@ -152,8 +152,10 @@
         .stat-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
 
         .shop-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 16px; margin-top: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+            margin-top: 15px;
         }
         .product-card {
             background: var(--card-bg); border-radius: 25px; padding: 18px;
@@ -171,6 +173,19 @@
         .product-card:hover .product-icon { border-color: var(--neon-cyan); box-shadow: 0 0 25px var(--neon-cyan); }
         .product-name { font-size: 18px; font-weight: 600; margin-bottom: 5px; }
         .product-description { font-size: 13px; color: var(--text-dim); margin-bottom: 15px; }
+        .product-details {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            width: 100%;
+            text-align: left;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 8px;
+        }
+        .product-details i {
+            width: 20px;
+            color: var(--neon-cyan);
+        }
         .product-price {
             font-size: 20px; font-weight: 700; color: var(--neon-green);
             margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 5px;
@@ -184,6 +199,16 @@
         .btn-buy:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--neon-blue); }
         .btn-buy:disabled { opacity: 0.5; pointer-events: none; }
 
+        .category-header {
+            grid-column: 1 / -1;
+            font-size: 1.5rem;
+            margin: 20px 0 10px;
+            border-bottom: 2px solid var(--neon-cyan);
+            padding-bottom: 5px;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+        }
+
         .table-container {
             background: var(--card-bg); border-radius: 25px; padding: 16px;
             border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; overflow-x: auto;
@@ -194,7 +219,8 @@
             color: var(--neon-cyan); font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.1);
             font-size: 14px;
         }
-        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; color: var(--text-light); } /* Исправлено: белый текст */
+
         tr:hover { background: rgba(255,255,255,0.03); }
 
         .modal {
@@ -205,7 +231,7 @@
         .modal.active { display: flex; }
         .modal-content {
             background: var(--card-bg); border-radius: 30px; padding: 25px;
-            max-width: 95%; width: 400px; border: 1px solid rgba(255,255,255,0.1);
+            max-width: 95%; width: 500px; border: 1px solid rgba(255,255,255,0.1);
             max-height: 85vh; overflow-y: auto;
         }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -299,7 +325,7 @@
                             <p>Колонизация Юпитера</p>
                         </div>
                     </div>
-                    <div class="version" style="color: var(--text-dim);">v6.2</div>
+                    <div class="version" style="color: var(--text-dim);">v6.3</div>
                 </div>
                 <div style="display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 15px;">
                     <div style="display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; max-width: 400px;">
@@ -429,6 +455,19 @@
                             <h2><i class="fas fa-store"></i> Здания Юпитера</h2>
                             <span class="impulse-badge">Баланс: <span id="shopImpulseBalance">0</span></span>
                         </div>
+                        <!-- Фильтры по типу -->
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+                            <button class="btn btn-outline filter-btn active" data-type="all">Все</button>
+                            <button class="btn btn-outline filter-btn" data-type="жильё">Жильё</button>
+                            <button class="btn btn-outline filter-btn" data-type="энергия">Энергия</button>
+                            <button class="btn btn-outline filter-btn" data-type="добыча">Добыча</button>
+                            <button class="btn btn-outline filter-btn" data-type="еда">Еда</button>
+                            <button class="btn btn-outline filter-btn" data-type="терраформинг">Терраформинг</button>
+                            <button class="btn btn-outline filter-btn" data-type="бустер">Бустер</button>
+                            <button class="btn btn-outline filter-btn" data-type="защита">Защита</button>
+                            <button class="btn btn-outline filter-btn" data-type="производство">Производство</button>
+                            <button class="btn btn-outline filter-btn" data-type="тотем">Тотем</button>
+                        </div>
                         <div id="shopItemsGrid" class="shop-grid">Загрузка товаров...</div>
                     </div>
 
@@ -538,7 +577,7 @@
                         </div>
                     </div>
 
-                    <!-- Вкладка СОБЫТИЯ И РАУНДЫ -->
+                    <!-- Вкладка СОБЫТИЯ -->
                     <div id="adminEventsTab" style="display: none;">
                         <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
                             <div class="table-container">
@@ -557,13 +596,22 @@
                                 <button onclick="spinWheel()" class="btn btn-primary" style="width:100%;">🎲 Крутить колесо</button>
                             </div>
                         </div>
-                        <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
-                            <!-- Блок тотема удалён из админки -->
-                            <div class="table-container">
-                                <h3><i class="fas fa-file-contract"></i> Контракты</h3>
-                                <select id="teamContractSelect" class="form-control" style="margin-bottom:12px;"></select>
-                                <button onclick="assignContract()" class="btn btn-info">📝 Назначить случайный контракт</button>
+                        <!-- Список событий -->
+                        <div class="table-container">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:15px;">
+                                <h3><i class="fas fa-list"></i> События колеса фортуны</h3>
+                                <button onclick="showAddEventModal()" class="btn btn-success"><i class="fas fa-plus"></i> Добавить событие</button>
                             </div>
+                            <table>
+                                <thead><tr><th>Тип</th><th>Название</th><th>Эффект</th><th>Действия</th></tr></thead>
+                                <tbody id="eventsTableBody"></tbody>
+                            </table>
+                        </div>
+                        <!-- Контракты (оставим) -->
+                        <div class="table-container">
+                            <h3><i class="fas fa-file-contract"></i> Контракты</h3>
+                            <select id="teamContractSelect" class="form-control" style="margin-bottom:12px;"></select>
+                            <button onclick="assignContract()" class="btn btn-info">📝 Назначить случайный контракт</button>
                         </div>
                     </div>
 
@@ -654,11 +702,45 @@
         </div>
     </div>
 
+    <!-- Добавление/редактирование события -->
+    <div id="addEventModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h2 id="eventModalTitle">Добавить событие</h2><button class="modal-close" onclick="closeModal('addEventModal')">&times;</button></div>
+            <input type="hidden" id="editEventId">
+            <div class="form-group"><label>Название</label><input type="text" id="eventName" class="form-control"></div>
+            <div class="form-group"><label>Тип (positive/negative)</label>
+                <select id="eventType" class="form-control">
+                    <option value="positive">Позитивное</option>
+                    <option value="negative">Негативное</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Описание эффекта</label><textarea id="eventDescription" class="form-control" rows="3"></textarea></div>
+            <div class="form-group"><label>Эффект (JSON)</label><textarea id="eventEffect" class="form-control" rows="5">{
+  "type": "incomeBoost",
+  "target": "добыча",
+  "value": 0.1
+}</textarea></div>
+            <button onclick="saveEvent()" class="btn btn-primary" style="width:100%;">Сохранить</button>
+        </div>
+    </div>
+
     <!-- Инвентарь команды (для организатора) -->
     <div id="inventoryModal" class="modal">
         <div class="modal-content">
             <div class="modal-header"><h2 id="inventoryTeamName">Инвентарь команды</h2><button class="modal-close" onclick="closeModal('inventoryModal')">&times;</button></div>
             <div id="inventoryList" style="max-height: 60vh; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения покупки -->
+    <div id="confirmBuyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h2>Подтверждение покупки</h2><button class="modal-close" onclick="closeModal('confirmBuyModal')">&times;</button></div>
+            <div id="confirmBuyDetails"></div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button onclick="executeBuy()" class="btn btn-success" style="flex:1;">Подтвердить</button>
+                <button onclick="closeModal('confirmBuyModal')" class="btn btn-danger" style="flex:1;">Отмена</button>
+            </div>
         </div>
     </div>
 
@@ -668,7 +750,7 @@
         // ================= КОНФИГУРАЦИЯ =================
         const CONFIG = {
             // !!! ЗАМЕНИТЕ НА ВАШ URL ОТ PUBLISHED APPS SCRIPT !!!
-            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzklVM71WrX09iqv_kc0ePi5ZWhmUfclyqeuF-BHyjfCVza3eZ59KIH3sOZH6d_5U5wZA/exec',
+            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwc3v5fY_pmrDqg_qggj64k_HsrdcN9maWE4Zbg17HiKdYgMaospgGRnJVEqL-kCsrCrA/exec',
             ADMIN_PASSWORD: 'org2026',
             REFRESH_INTERVAL: 30000
         };
@@ -683,8 +765,12 @@
             purchases: [],
             transactions: [],
             rating: [],
-            contracts: []
+            contracts: [],
+            events: [] // события колеса
         };
+
+        let pendingBuyItemId = null; // для подтверждения покупки
+        let currentFilter = 'all';    // текущий фильтр в магазине
 
         // ================= ОБЩИЕ ФУНКЦИИ =================
         function showNotification(message, type = 'info') {
@@ -732,6 +818,16 @@
                 loadAdminData();
                 startAutoRefresh();
             }
+
+            // Инициализация фильтров магазина
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.type;
+                    updateTeamUI(); // перерисуем магазин с новым фильтром
+                });
+            });
         });
 
         function loginAsTeam() {
@@ -783,12 +879,13 @@
         async function loadTeamData() {
             if (!currentState.team) return;
             try {
-                const [ratingRes, historyRes, itemsRes, invRes, contractsRes] = await Promise.all([
+                const [ratingRes, historyRes, itemsRes, invRes, contractsRes, eventsRes] = await Promise.all([
                     fetch(`${CONFIG.SCRIPT_URL}?action=getRating`),
                     fetch(`${CONFIG.SCRIPT_URL}?action=getTransactions&teamId=${currentState.team.id}`),
                     fetch(`${CONFIG.SCRIPT_URL}?action=getShopItems`),
                     fetch(`${CONFIG.SCRIPT_URL}?action=getTeamInventory&teamId=${currentState.team.id}`),
-                    fetch(`${CONFIG.SCRIPT_URL}?action=getContracts`)
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getContracts`),
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getEvents`) // добавим позже в .gs
                 ]);
 
                 const ratingData = await ratingRes.json();
@@ -796,6 +893,7 @@
                 const itemsData = await itemsRes.json();
                 const invData = await invRes.json();
                 const contractsData = await contractsRes.json();
+                const eventsData = eventsRes.ok ? await eventsRes.json() : { success: false };
 
                 if (ratingData.success) {
                     currentState.rating = ratingData.data.rating || [];
@@ -810,6 +908,7 @@
                 if (itemsData.success) currentState.allItems = itemsData.data.items || [];
                 if (invData.success) currentState.purchases = invData.data.items || [];
                 if (contractsData.success) currentState.contracts = contractsData.data.contracts || [];
+                if (eventsData.success) currentState.events = eventsData.data.events || [];
 
                 updateTeamUI();
             } catch (e) {
@@ -845,7 +944,6 @@
             // Предупреждение о еде
             const colonists = currentState.team.colonists || 0;
             const food = currentState.team.foodSupply || 0;
-            // потребность в еде: 300 на колониста
             const neededStations = colonists > 0 ? Math.ceil((colonists * 300 - food) / 300) : 0;
             const coverage = colonists > 0 ? Math.min(100, Math.round((food / (colonists * 300)) * 100)) : 100;
             if (coverage < 80) {
@@ -898,74 +996,89 @@
             rateHtml += '</table>';
             document.getElementById('ratingTable').innerHTML = rateHtml;
 
-            // --- МАГАЗИН С ВЕТКОЙ РАЗВИТИЯ ---
+            // --- МАГАЗИН С ВЕТКОЙ РАЗВИТИЯ И ФИЛЬТРАМИ ---
             document.getElementById('shopImpulseBalance').textContent = currentState.team.score;
             let shopHtml = '';
             if (currentState.allItems.length) {
-                // Получаем список ID функционирующих зданий
+                // Группировка по типу (категории)
+                const itemsByType = {};
+                currentState.allItems.forEach(item => {
+                    const type = item.type || 'другое';
+                    if (!itemsByType[type]) itemsByType[type] = [];
+                    itemsByType[type].push(item);
+                });
+
+                // Сортируем категории
+                const sortedTypes = Object.keys(itemsByType).sort();
+
+                // Функция проверки доступности здания (ветка развития)
                 const functionalIds = currentState.purchases
                     .filter(p => p.status === 'функционирует')
                     .map(p => p.id);
-
-                // Функция проверки доступности здания по сезонам (линейная ветка)
                 function isItemAvailable(item) {
                     const id = item.id;
                     if (id <= 5) return true; // сезон 1 всегда доступен
-                    if (id >= 6 && id <= 9) {
-                        // требуется хотя бы одно здание сезона 1
-                        return functionalIds.some(fid => fid <= 5);
-                    }
-                    if (id >= 10 && id <= 13) {
-                        // требуется хотя бы одно здание сезона 2
-                        return functionalIds.some(fid => fid >= 6 && fid <= 9);
-                    }
-                    if (id >= 14 && id <= 17) {
-                        return functionalIds.some(fid => fid >= 10 && fid <= 13);
-                    }
-                    if (id >= 18 && id <= 21) {
-                        return functionalIds.some(fid => fid >= 14 && fid <= 17);
-                    }
-                    if (id >= 22 && id <= 25) {
-                        return functionalIds.some(fid => fid >= 18 && fid <= 21);
-                    }
-                    // Для остальных (ID > 25) – считаем доступными только при наличии хотя бы одного здания последнего сезона
+                    if (id >= 6 && id <= 9) return functionalIds.some(fid => fid <= 5);
+                    if (id >= 10 && id <= 13) return functionalIds.some(fid => fid >= 6 && fid <= 9);
+                    if (id >= 14 && id <= 17) return functionalIds.some(fid => fid >= 10 && fid <= 13);
+                    if (id >= 18 && id <= 21) return functionalIds.some(fid => fid >= 14 && fid <= 17);
+                    if (id >= 22 && id <= 25) return functionalIds.some(fid => fid >= 18 && fid <= 21);
                     return functionalIds.some(fid => fid >= 22 && fid <= 25);
                 }
 
                 const purchasedIds = currentState.purchases.map(p => p.id);
                 const hasBoughtStatus = currentState.purchases.some(p => p.status === 'куплено');
 
-                currentState.allItems.forEach(item => {
-                    const purchase = currentState.purchases.find(p => p.id === item.id);
-                    const status = purchase ? purchase.status : null;
-                    const isBought = !!purchase;
-                    const isAwaiting = status === 'куплено';
-                    const available = isItemAvailable(item);
-                    
-                    // Определяем, доступна ли покупка
-                    const disabled = isBought || currentState.team.score < item.price || hasBoughtStatus || !available;
-                    
-                    let buttonText = 'Купить';
-                    if (isBought) {
-                        buttonText = isAwaiting ? 'Ожидает выдачи' : 'Уже куплено';
-                    } else if (!available) {
-                        buttonText = 'Требуется развитие';
-                    }
-                    
-                    const cardClass = isAwaiting ? 'product-card pulse-awaiting' : 'product-card';
-                    
-                    shopHtml += `
-                        <div class="${cardClass}">
-                            <div class="product-icon"><i class="${item.icon}"></i></div>
-                            <div class="product-name">${item.name}</div>
-                            <div class="product-description">${item.description}</div>
-                            <div class="product-price"><i class="fas fa-bolt"></i> ${item.price}</div>
-                            <button class="btn-buy" onclick="buyItem(${item.id})" ${disabled ? 'disabled' : ''}>
-                                ${buttonText}
-                            </button>
-                        </div>
-                    `;
-                });
+                // Проходим по категориям
+                for (let type of sortedTypes) {
+                    // Если фильтр активен и не совпадает с типом, пропускаем всю категорию (кроме all)
+                    if (currentFilter !== 'all' && currentFilter !== type) continue;
+
+                    // Заголовок категории
+                    shopHtml += `<div class="category-header">${type.charAt(0).toUpperCase() + type.slice(1)}</div>`;
+
+                    itemsByType[type].forEach(item => {
+                        const purchase = currentState.purchases.find(p => p.id === item.id);
+                        const status = purchase ? purchase.status : null;
+                        const isBought = !!purchase;
+                        const isAwaiting = status === 'куплено';
+                        const available = isItemAvailable(item);
+
+                        const disabled = isBought || currentState.team.score < item.price || hasBoughtStatus || !available;
+
+                        let buttonText = 'Купить';
+                        if (isBought) {
+                            buttonText = isAwaiting ? 'Ожидает выдачи' : 'Уже куплено';
+                        } else if (!available) {
+                            buttonText = 'Требуется развитие';
+                        }
+
+                        const cardClass = isAwaiting ? 'product-card pulse-awaiting' : 'product-card';
+
+                        // Формируем детали здания
+                        let detailsHtml = '';
+                        if (item.energyProvides) detailsHtml += `<div><i class="fas fa-bolt"></i> Даёт энергии: ${item.energyProvides}</div>`;
+                        if (item.energyCost) detailsHtml += `<div><i class="fas fa-plug"></i> Потребляет энергии: ${item.energyCost}</div>`;
+                        if (item.colonistsProvides) detailsHtml += `<div><i class="fas fa-users"></i> +${item.colonistsProvides} колонистов</div>`;
+                        if (item.foodProvides) detailsHtml += `<div><i class="fas fa-utensils"></i> +${item.foodProvides} еды/сезон</div>`;
+                        if (item.terraformBonus) detailsHtml += `<div><i class="fas fa-leaf"></i> Терраформинг: ${item.terraformBonus > 0 ? '+' : ''}${item.terraformBonus}%</div>`;
+                        if (item.effect && item.effect.income) detailsHtml += `<div><i class="fas fa-coins"></i> Доход: ${item.effect.income} ⚡/сезон</div>`;
+                        if (item.effect && item.effect.boostType) detailsHtml += `<div><i class="fas fa-rocket"></i> Бустер: +${item.effect.value*100}% к ${item.effect.boostType}</div>`;
+
+                        shopHtml += `
+                            <div class="${cardClass}">
+                                <div class="product-icon"><i class="${item.icon}"></i></div>
+                                <div class="product-name">${item.name}</div>
+                                <div class="product-description">${item.description}</div>
+                                <div class="product-details">${detailsHtml}</div>
+                                <div class="product-price"><i class="fas fa-bolt"></i> ${item.price}</div>
+                                <button class="btn-buy" onclick="confirmBuy(${item.id})" ${disabled ? 'disabled' : ''}>
+                                    ${buttonText}
+                                </button>
+                            </div>
+                        `;
+                    });
+                }
             } else {
                 shopHtml = '<p>Товары временно отсутствуют</p>';
             }
@@ -1033,6 +1146,25 @@
                 return `<button class="btn btn-primary btn-sm" onclick="activateQuantum(${item.purchaseId})">⚛️ Квантовый пересчёт</button>`;
             }
             return '';
+        }
+
+        // ================= ПОДТВЕРЖДЕНИЕ ПОКУПКИ =================
+        function confirmBuy(itemId) {
+            const item = currentState.allItems.find(i => i.id === itemId);
+            if (!item) return;
+            pendingBuyItemId = itemId;
+            document.getElementById('confirmBuyDetails').innerHTML = `
+                <p>Вы уверены, что хотите купить <strong>${item.name}</strong> за ${item.price} ⚡?</p>
+                <p>${item.description}</p>
+            `;
+            document.getElementById('confirmBuyModal').classList.add('active');
+        }
+
+        async function executeBuy() {
+            if (!pendingBuyItemId) return;
+            await buyItem(pendingBuyItemId);
+            closeModal('confirmBuyModal');
+            pendingBuyItemId = null;
         }
 
         // ================= ПОКУПКА =================
@@ -1221,18 +1353,21 @@
         // ================= ЗАГРУЗКА ДАННЫХ ОРГАНИЗАТОРА =================
         async function loadAdminData() {
             try {
-                const [teamsRes, itemsRes, transRes] = await Promise.all([
+                const [teamsRes, itemsRes, transRes, eventsRes] = await Promise.all([
                     fetch(`${CONFIG.SCRIPT_URL}?action=getTeams`),
                     fetch(`${CONFIG.SCRIPT_URL}?action=getShopItems`),
-                    fetch(`${CONFIG.SCRIPT_URL}?action=getTransactions`)
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getTransactions`),
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getEvents`)
                 ]);
                 const teamsData = await teamsRes.json();
                 const itemsData = await itemsRes.json();
                 const transData = await transRes.json();
+                const eventsData = eventsRes.ok ? await eventsRes.json() : { success: false };
 
                 if (teamsData.success) currentState.allTeams = teamsData.data.teams || [];
                 if (itemsData.success) currentState.allItems = itemsData.data.items || [];
                 if (transData.success) currentState.transactions = transData.data.transactions || [];
+                if (eventsData.success) currentState.events = eventsData.data.events || [];
 
                 updateAdminUI();
             } catch (e) {
@@ -1287,6 +1422,23 @@
                 });
             } else itemsHtml = '<tr><td colspan="7">Нет товаров</td></tr>';
             document.getElementById('itemsTableBody').innerHTML = itemsHtml;
+
+            // События
+            let eventsHtml = '';
+            if (currentState.events.length) {
+                currentState.events.forEach(e => {
+                    eventsHtml += `<tr>
+                        <td>${e.type}</td>
+                        <td>${e.name}</td>
+                        <td>${e.description || ''}</td>
+                        <td>
+                            <button class="btn btn-primary btn-icon" onclick="openEditEventModal(${e.id})"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-danger btn-icon" onclick="deleteEvent(${e.id})"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+                });
+            } else eventsHtml = '<tr><td colspan="4">Нет событий</td></tr>';
+            document.getElementById('eventsTableBody').innerHTML = eventsHtml;
 
             // Статистика
             document.getElementById('totalTeamsStat').textContent = currentState.allTeams.length;
@@ -1572,6 +1724,80 @@
                     showNotification(result.data.error || 'Ошибка', 'error');
                 }
             } catch (e) { showNotification('Ошибка', 'error'); }
+        }
+
+        // ================= СОБЫТИЯ (CRUD) =================
+        function showAddEventModal() {
+            document.getElementById('eventModalTitle').textContent = 'Добавить событие';
+            document.getElementById('editEventId').value = '';
+            document.getElementById('eventName').value = '';
+            document.getElementById('eventType').value = 'positive';
+            document.getElementById('eventDescription').value = '';
+            document.getElementById('eventEffect').value = '{\n  "type": "incomeBoost",\n  "target": "добыча",\n  "value": 0.1\n}';
+            document.getElementById('addEventModal').classList.add('active');
+        }
+
+        function openEditEventModal(id) {
+            const event = currentState.events.find(e => e.id == id);
+            if (!event) return;
+            document.getElementById('eventModalTitle').textContent = 'Редактировать событие';
+            document.getElementById('editEventId').value = event.id;
+            document.getElementById('eventName').value = event.name;
+            document.getElementById('eventType').value = event.type;
+            document.getElementById('eventDescription').value = event.description || '';
+            document.getElementById('eventEffect').value = JSON.stringify(event.effect, null, 2);
+            document.getElementById('addEventModal').classList.add('active');
+        }
+
+        async function saveEvent() {
+            const id = document.getElementById('editEventId').value;
+            const name = document.getElementById('eventName').value.trim();
+            const type = document.getElementById('eventType').value;
+            const description = document.getElementById('eventDescription').value.trim();
+            const effect = document.getElementById('eventEffect').value;
+
+            if (!name) return showNotification('Введите название', 'error');
+            try { JSON.parse(effect); } catch { return showNotification('Эффект должен быть валидным JSON', 'error'); }
+
+            const action = id ? 'updateEvent' : 'addEvent';
+            const formData = new FormData();
+            formData.append('action', action);
+            if (id) formData.append('eventId', id);
+            formData.append('name', name);
+            formData.append('type', type);
+            formData.append('description', description);
+            formData.append('effect', effect);
+            formData.append('password', currentState.adminPassword);
+
+            try {
+                const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.success) {
+                    showNotification('Событие сохранено', 'success');
+                    closeModal('addEventModal');
+                    loadAdminData();
+                } else {
+                    showNotification(result.data.error || 'Ошибка', 'error');
+                }
+            } catch (e) { showNotification('Ошибка сети', 'error'); }
+        }
+
+        async function deleteEvent(id) {
+            if (!confirm('Удалить событие?')) return;
+            const formData = new FormData();
+            formData.append('action', 'deleteEvent');
+            formData.append('eventId', id);
+            formData.append('password', currentState.adminPassword);
+            try {
+                const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.success) {
+                    showNotification('Событие удалено', 'success');
+                    loadAdminData();
+                } else {
+                    showNotification(result.data.error || 'Ошибка', 'error');
+                }
+            } catch (e) { showNotification('Ошибка сети', 'error'); }
         }
 
         // Показать инвентарь команды для организатора
