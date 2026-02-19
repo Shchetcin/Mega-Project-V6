@@ -25,6 +25,7 @@
             --card-bg: rgba(20,25,45,0.9);
             --text-light: #f0f0f0;
             --text-dim: #aaa;
+            --blur-amount: 3px;
         }
 
         body {
@@ -137,6 +138,7 @@
             background: var(--card-bg); border-radius: 25px; padding: 18px;
             border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(5px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            position: relative;
         }
         .stat-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
         .stat-icon {
@@ -150,6 +152,27 @@
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
         .stat-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Затемнение и замок для неактивных элементов */
+        .blurred {
+            filter: blur(var(--blur-amount));
+            opacity: 0.5;
+            pointer-events: none;
+            user-select: none;
+        }
+        .lock-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: rgba(255,255,255,0.5);
+            backdrop-filter: blur(2px);
+            pointer-events: none;
+        }
 
         .shop-grid {
             display: grid;
@@ -219,7 +242,7 @@
             color: var(--neon-cyan); font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.1);
             font-size: 14px;
         }
-        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; color: var(--text-light); } /* Исправлено: белый текст */
+        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; color: var(--text-light); }
 
         tr:hover { background: rgba(255,255,255,0.03); }
 
@@ -266,10 +289,11 @@
             display: inline-block; padding: 3px 8px; border-radius: 20px;
             font-size: 11px; font-weight: 600; text-transform: uppercase;
             background: rgba(0,0,0,0.5);
+            color: var(--text-light) !important;
         }
-        .status-badge.куплено { color: #aaa; border: 1px solid #aaa; animation: pulse-white 2s infinite; }
-        .status-badge.строится { color: #f8961e; border: 1px solid #f8961e; }
-        .status-badge.функционирует { color: #06d6a0; border: 1px solid #06d6a0; }
+        .status-badge.куплено { color: #aaa !important; border: 1px solid #aaa; animation: pulse-white 2s infinite; }
+        .status-badge.строится { color: #f8961e !important; border: 1px solid #f8961e; }
+        .status-badge.функционирует { color: #06d6a0 !important; border: 1px solid #06d6a0; }
 
         @keyframes pulse-white {
             0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
@@ -304,6 +328,14 @@
             display: none;
         }
 
+        /* Затемнённые карточки */
+        .stat-card.blurred .stat-value,
+        .stat-card.blurred .stat-label,
+        .stat-card.blurred .stat-icon {
+            filter: blur(2px);
+            opacity: 0.5;
+        }
+
         @media (max-width: 600px) {
             .header { flex-direction: column; align-items: stretch; }
             .tabs { justify-content: flex-start; }
@@ -325,7 +357,7 @@
                             <p>Колонизация Юпитера</p>
                         </div>
                     </div>
-                    <div class="version" style="color: var(--text-dim);">v6.3</div>
+                    <div class="version" style="color: var(--text-dim);">v6.5</div>
                 </div>
                 <div style="display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 15px;">
                     <div style="display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; max-width: 400px;">
@@ -370,6 +402,7 @@
                     </div>
                     <div class="user-info">
                         <span class="impulse-badge"><i class="fas fa-bolt"></i> <span id="teamScoreBadge">0</span></span>
+                        <span id="epochDisplay" style="font-size:12px; background:rgba(255,255,255,0.1); padding:4px 8px; border-radius:20px;">⚡ Заря</span>
                         <button onclick="refreshTeamData()" class="btn" style="padding:8px;"><i class="fas fa-sync-alt"></i></button>
                     </div>
                 </div>
@@ -384,40 +417,8 @@
 
                     <!-- Вкладка ДАШБОРД -->
                     <div id="teamDashboardTab" style="display: block;">
-                        <div class="stats-grid">
-                            <div class="stat-card">
-                                <div class="stat-header"><div class="stat-icon"><i class="fas fa-bolt"></i></div></div>
-                                <div class="stat-value" id="myScore">0</div>
-                                <div class="stat-label">Мои импульсы</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-header"><div class="stat-icon"><i class="fas fa-trophy"></i></div></div>
-                                <div class="stat-value" id="myPosition">-</div>
-                                <div class="stat-label">Место в рейтинге</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-header"><div class="stat-icon"><i class="fas fa-users"></i></div></div>
-                                <div class="stat-value" id="totalTeamsCount">0</div>
-                                <div class="stat-label">Всего команд</div>
-                            </div>
-                            <!-- Новая карточка: индекс терраформинга -->
-                            <div class="stat-card">
-                                <div class="stat-header"><div class="stat-icon"><i class="fas fa-leaf"></i></div></div>
-                                <div class="stat-value" id="terraformIndex">50%</div>
-                                <div class="stat-label">Терраформинг</div>
-                            </div>
-                            <!-- Новая карточка: энергия (слоты) -->
-                            <div class="stat-card">
-                                <div class="stat-header"><div class="stat-icon"><i class="fas fa-bolt"></i></div></div>
-                                <div class="stat-value" id="energySlots">0/0</div>
-                                <div class="stat-label">Энергия (слоты)</div>
-                            </div>
-                            <!-- Новая карточка: колонисты и еда -->
-                            <div class="stat-card">
-                                <div class="stat-header"><div class="stat-icon"><i class="fas fa-users"></i></div></div>
-                                <div class="stat-value" id="colonistsFood">0 / 0</div>
-                                <div class="stat-label">Колонисты / Еда</div>
-                            </div>
+                        <div class="stats-grid" id="dashboardStats">
+                            <!-- Карточки генерируются скриптом -->
                         </div>
 
                         <!-- Блок предупреждения о еде -->
@@ -443,7 +444,8 @@
                             <div id="historyTable">Загрузка...</div>
                         </div>
 
-                        <div class="table-container">
+                        <!-- Рейтинг команд (с замком, если нет разведпункта) -->
+                        <div class="table-container" id="ratingContainer">
                             <h3 style="margin-bottom:15px;"><i class="fas fa-chart-line"></i> Рейтинг команд</h3>
                             <div id="ratingTable">Загрузка...</div>
                         </div>
@@ -456,7 +458,7 @@
                             <span class="impulse-badge">Баланс: <span id="shopImpulseBalance">0</span></span>
                         </div>
                         <!-- Фильтры по типу -->
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+                        <div id="shopFilters" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
                             <button class="btn btn-outline filter-btn active" data-type="all">Все</button>
                             <button class="btn btn-outline filter-btn" data-type="жильё">Жильё</button>
                             <button class="btn btn-outline filter-btn" data-type="энергия">Энергия</button>
@@ -477,7 +479,7 @@
                         <div id="inventoryGrid" class="shop-grid">Загрузка инвентаря...</div>
                     </div>
 
-                    <!-- Вкладка ФИНАНСЫ (кредиты, инвестиции, тотем) -->
+                    <!-- Вкладка ФИНАНСЫ -->
                     <div id="teamFinanceTab" style="display: none;">
                         <div class="stats-grid">
                             <div class="stat-card">
@@ -534,6 +536,7 @@
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:15px;">
                                 <h3><i class="fas fa-users"></i> Все команды</h3>
                                 <button onclick="showAddTeamModal()" class="btn btn-success"><i class="fas fa-plus"></i> Добавить</button>
+                                <button onclick="advanceEpoch()" class="btn btn-primary"><i class="fas fa-forward"></i> Запустить эпоху</button>
                             </div>
                             <table>
                                 <thead><tr><th>ID</th><th>Название</th><th>⚡</th><th>Куплено</th><th>Потрачено</th><th>Код</th><th>Контакт</th><th>Действия</th></tr></thead>
@@ -603,11 +606,11 @@
                                 <button onclick="showAddEventModal()" class="btn btn-success"><i class="fas fa-plus"></i> Добавить событие</button>
                             </div>
                             <table>
-                                <thead><tr><th>Тип</th><th>Название</th><th>Эффект</th><th>Действия</th></tr></thead>
+                                <thead><tr><th>Тип</th><th>Название</th><th>Описание</th><th>Действия</th></tr></thead>
                                 <tbody id="eventsTableBody"></tbody>
                             </table>
                         </div>
-                        <!-- Контракты (оставим) -->
+                        <!-- Контракты -->
                         <div class="table-container">
                             <h3><i class="fas fa-file-contract"></i> Контракты</h3>
                             <select id="teamContractSelect" class="form-control" style="margin-bottom:12px;"></select>
@@ -633,6 +636,7 @@
     </div>
 
     <!-- ========== МОДАЛЬНЫЕ ОКНА ========== -->
+    <!-- (оставляем как в предыдущей версии, не меняем) -->
 
     <!-- Добавление команды -->
     <div id="addTeamModal" class="modal">
@@ -749,8 +753,7 @@
     <script>
         // ================= КОНФИГУРАЦИЯ =================
         const CONFIG = {
-            // !!! ЗАМЕНИТЕ НА ВАШ URL ОТ PUBLISHED APPS SCRIPT !!!
-            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwc3v5fY_pmrDqg_qggj64k_HsrdcN9maWE4Zbg17HiKdYgMaospgGRnJVEqL-kCsrCrA/exec',
+            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxUXAGqRMn12CGkqoblgQ7Hcn6ANL1YWK8Ca-EL0leC25WJ5q0GEnTGGIMip3PO_wxEAw/exec',
             ADMIN_PASSWORD: 'org2026',
             REFRESH_INTERVAL: 30000
         };
@@ -766,11 +769,12 @@
             transactions: [],
             rating: [],
             contracts: [],
-            events: [] // события колеса
+            events: [],
+            gameState: { epoch: 0, name: 'Заря' }
         };
 
-        let pendingBuyItemId = null; // для подтверждения покупки
-        let currentFilter = 'all';    // текущий фильтр в магазине
+        let pendingBuyItemId = null;
+        let currentFilter = 'all';
 
         // ================= ОБЩИЕ ФУНКЦИИ =================
         function showNotification(message, type = 'info') {
@@ -819,13 +823,12 @@
                 startAutoRefresh();
             }
 
-            // Инициализация фильтров магазина
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     currentFilter = this.dataset.type;
-                    updateTeamUI(); // перерисуем магазин с новым фильтром
+                    if (currentState.team) updateTeamUI();
                 });
             });
         });
@@ -879,13 +882,14 @@
         async function loadTeamData() {
             if (!currentState.team) return;
             try {
-                const [ratingRes, historyRes, itemsRes, invRes, contractsRes, eventsRes] = await Promise.all([
+                const [ratingRes, historyRes, itemsRes, invRes, contractsRes, eventsRes, stateRes] = await Promise.all([
                     fetch(`${CONFIG.SCRIPT_URL}?action=getRating`),
                     fetch(`${CONFIG.SCRIPT_URL}?action=getTransactions&teamId=${currentState.team.id}`),
                     fetch(`${CONFIG.SCRIPT_URL}?action=getShopItems`),
                     fetch(`${CONFIG.SCRIPT_URL}?action=getTeamInventory&teamId=${currentState.team.id}`),
                     fetch(`${CONFIG.SCRIPT_URL}?action=getContracts`),
-                    fetch(`${CONFIG.SCRIPT_URL}?action=getEvents`) // добавим позже в .gs
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getEvents`),
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getGameState`)
                 ]);
 
                 const ratingData = await ratingRes.json();
@@ -894,12 +898,12 @@
                 const invData = await invRes.json();
                 const contractsData = await contractsRes.json();
                 const eventsData = eventsRes.ok ? await eventsRes.json() : { success: false };
+                const stateData = stateRes.ok ? await stateRes.json() : { data: { epoch: 0, name: 'Заря' } };
 
                 if (ratingData.success) {
                     currentState.rating = ratingData.data.rating || [];
                     const updated = currentState.rating.find(t => t.id == currentState.team.id);
                     if (updated) {
-                        // Обновляем все поля команды из рейтинга (там полные данные)
                         currentState.team = { ...currentState.team, ...updated };
                         localStorage.setItem('team', JSON.stringify(currentState.team));
                     }
@@ -909,6 +913,7 @@
                 if (invData.success) currentState.purchases = invData.data.items || [];
                 if (contractsData.success) currentState.contracts = contractsData.data.contracts || [];
                 if (eventsData.success) currentState.events = eventsData.data.events || [];
+                if (stateData.success) currentState.gameState = stateData.data;
 
                 updateTeamUI();
             } catch (e) {
@@ -918,30 +923,74 @@
 
         function updateTeamUI() {
             if (!currentState.team) return;
+            const epoch = currentState.gameState.epoch || 0;
+            const epochName = currentState.gameState.name || 'Заря';
+            document.getElementById('epochDisplay').innerHTML = `⚡ ${epochName}`;
+
             // Шапка
             document.getElementById('teamNameHeader').textContent = currentState.team.name;
             document.getElementById('teamScoreHeader').textContent = currentState.team.score;
             document.getElementById('teamScoreBadge').textContent = currentState.team.score;
 
-            // Дашборд
-            document.getElementById('myScore').textContent = currentState.team.score;
-            const pos = currentState.rating.findIndex(t => t.id == currentState.team.id) + 1;
-            document.getElementById('myPosition').textContent = pos > 0 ? pos : '-';
-            document.getElementById('totalTeamsCount').textContent = currentState.rating.length;
+            // Статистика на дашборде (всегда видна, но с затемнением до старта)
+            const dashboardStats = document.getElementById('dashboardStats');
+            dashboardStats.innerHTML = `
+                <div class="stat-card ${epoch === 0 ? 'blurred' : ''}">
+                    <div class="stat-header"><div class="stat-icon"><i class="fas fa-bolt"></i></div></div>
+                    <div class="stat-value" id="myScoreDash">${currentState.team.score}</div>
+                    <div class="stat-label">Мои импульсы</div>
+                    ${epoch === 0 ? '<div class="lock-overlay"><i class="fas fa-lock"></i></div>' : ''}
+                </div>
+                <div class="stat-card ${epoch === 0 ? 'blurred' : ''}">
+                    <div class="stat-header"><div class="stat-icon"><i class="fas fa-users"></i></div></div>
+                    <div class="stat-value">${currentState.rating.length}</div>
+                    <div class="stat-label">Всего команд</div>
+                    ${epoch === 0 ? '<div class="lock-overlay"><i class="fas fa-lock"></i></div>' : ''}
+                </div>
+                <div class="stat-card ${epoch === 0 ? 'blurred' : ''}">
+                    <div class="stat-header"><div class="stat-icon"><i class="fas fa-leaf"></i></div></div>
+                    <div class="stat-value">${currentState.team.terraformIndex || 50}%</div>
+                    <div class="stat-label">Терраформинг</div>
+                    ${epoch === 0 ? '<div class="lock-overlay"><i class="fas fa-lock"></i></div>' : ''}
+                </div>
+                <div class="stat-card ${epoch === 0 ? 'blurred' : ''}">
+                    <div class="stat-header"><div class="stat-icon"><i class="fas fa-bolt"></i></div></div>
+                    <div class="stat-value">${(currentState.purchases.filter(p => p.status === 'функционирует').reduce((sum, p) => sum + (p.energyCost || 0), 0))} / ${currentState.team.energySlots || 0}</div>
+                    <div class="stat-label">Энергия (слоты)</div>
+                    ${epoch === 0 ? '<div class="lock-overlay"><i class="fas fa-lock"></i></div>' : ''}
+                </div>
+                <div class="stat-card ${epoch === 0 ? 'blurred' : ''}">
+                    <div class="stat-header"><div class="stat-icon"><i class="fas fa-users"></i></div></div>
+                    <div class="stat-value">${currentState.team.colonists || 0} / ${currentState.team.foodSupply || 0}</div>
+                    <div class="stat-label">Колонисты / Еда</div>
+                    ${epoch === 0 ? '<div class="lock-overlay"><i class="fas fa-lock"></i></div>' : ''}
+                </div>
+            `;
 
-            // Индекс терраформинга
-            document.getElementById('terraformIndex').textContent = (currentState.team.terraformIndex || 50) + '%';
+            // Блокируем/разблокируем вкладки (кроме дашборда)
+            const tabBtns = document.querySelectorAll('#teamScreen .tab-btn');
+            tabBtns.forEach((btn, idx) => {
+                if (idx === 0) return; // дашборд всегда доступен
+                if (epoch === 0) {
+                    btn.style.pointerEvents = 'none';
+                    btn.style.opacity = '0.3';
+                } else {
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.opacity = '1';
+                }
+            });
 
-            // Энергия
-            const usedEnergy = currentState.purchases
-                .filter(p => p.status === 'функционирует')
-                .reduce((sum, p) => sum + (p.energyCost || 0), 0);
-            document.getElementById('energySlots').textContent = `${usedEnergy} / ${currentState.team.energySlots || 0}`;
+            // Если эпоха 0 – прячем содержимое других вкладок, показываем заглушку
+            if (epoch === 0) {
+                document.getElementById('teamShopTab').innerHTML = '<div class="table-container"><p style="text-align:center;">Магазин откроется после старта эпохи</p></div>';
+                document.getElementById('teamInventoryTab').innerHTML = '<div class="table-container"><p style="text-align:center;">Инвентарь откроется после старта эпохи</p></div>';
+                document.getElementById('teamFinanceTab').innerHTML = '<div class="table-container"><p style="text-align:center;">Финансы откроются после старта эпохи</p></div>';
+                // Не обновляем дальше
+                return;
+            }
 
-            // Колонисты и еда
-            document.getElementById('colonistsFood').textContent = `${currentState.team.colonists || 0} / ${currentState.team.foodSupply || 0}`;
-
-            // Предупреждение о еде
+            // Если эпоха >=1 – отображаем полный функционал
+            // Еда
             const colonists = currentState.team.colonists || 0;
             const food = currentState.team.foodSupply || 0;
             const neededStations = colonists > 0 ? Math.ceil((colonists * 300 - food) / 300) : 0;
@@ -955,7 +1004,7 @@
                 document.getElementById('foodWarning').style.display = 'none';
             }
 
-            // Текущее событие
+            // Событие
             if (currentState.team.currentEvent) {
                 document.getElementById('eventText').textContent = currentState.team.currentEvent;
                 document.getElementById('currentEvent').style.display = 'block';
@@ -988,19 +1037,44 @@
             histHtml += '</table>';
             document.getElementById('historyTable').innerHTML = histHtml;
 
-            // Рейтинг
-            let rateHtml = '<table><tr><th>Место</th><th>Команда</th><th>Импульсы</th></tr>';
-            currentState.rating.slice(0,15).forEach((t,i) => {
-                rateHtml += `<tr ${t.id==currentState.team.id?'style="background:rgba(78,84,245,0.3)"':''}><td>${i+1}</td><td>${t.name}</td><td>${t.score}</td></tr>`;
-            });
-            rateHtml += '</table>';
+            // Рейтинг (с проверкой разведпункта)
+            const hasRevealRating = currentState.purchases.some(p => p.status === 'функционирует' && p.effect && p.effect.revealRating);
+            let rateHtml = '';
+            if (hasRevealRating) {
+                rateHtml = '<table><tr><th>Место</th><th>Команда</th><th>Импульсы</th></tr>';
+                currentState.rating.slice(0,15).forEach((t,i) => {
+                    rateHtml += `<tr ${t.id==currentState.team.id?'style="background:rgba(78,84,245,0.3)"':''}><td>${i+1}</td><td>${t.name}</td><td>${t.score}</td></tr>`;
+                });
+                rateHtml += '</table>';
+                document.getElementById('ratingContainer').style.opacity = '1';
+                document.getElementById('ratingContainer').style.pointerEvents = 'auto';
+            } else {
+                rateHtml = '<div style="position:relative;"><table><tr><th>Команда</th><th>Импульсы</th></tr>';
+                currentState.rating.slice(0,15).forEach(t => {
+                    rateHtml += `<tr><td>${t.name}</td><td>${t.score}</td></tr>`;
+                });
+                rateHtml += '</table><div class="lock-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; font-size:30px;"><i class="fas fa-lock"></i></div></div>';
+                document.getElementById('ratingContainer').style.opacity = '0.5';
+                document.getElementById('ratingContainer').style.pointerEvents = 'none';
+            }
             document.getElementById('ratingTable').innerHTML = rateHtml;
 
-            // --- МАГАЗИН С ВЕТКОЙ РАЗВИТИЯ И ФИЛЬТРАМИ ---
+            // Магазин
             document.getElementById('shopImpulseBalance').textContent = currentState.team.score;
             let shopHtml = '';
             if (currentState.allItems.length) {
-                // Группировка по типу (категории)
+                const functionalIds = currentState.purchases.filter(p => p.status === 'функционирует').map(p => p.id);
+                function isItemAvailable(item) {
+                    const id = item.id;
+                    if (id <= 5) return true;
+                    if (id >= 6 && id <= 9) return functionalIds.some(fid => fid <= 5);
+                    if (id >= 10 && id <= 13) return functionalIds.some(fid => fid >= 6 && fid <= 9);
+                    if (id >= 14 && id <= 17) return functionalIds.some(fid => fid >= 10 && fid <= 13);
+                    if (id >= 18 && id <= 21) return functionalIds.some(fid => fid >= 14 && fid <= 17);
+                    if (id >= 22 && id <= 27) return functionalIds.some(fid => fid >= 18 && fid <= 21);
+                    return functionalIds.some(fid => fid >= 22 && fid <= 27);
+                }
+
                 const itemsByType = {};
                 currentState.allItems.forEach(item => {
                     const type = item.type || 'другое';
@@ -1008,54 +1082,27 @@
                     itemsByType[type].push(item);
                 });
 
-                // Сортируем категории
                 const sortedTypes = Object.keys(itemsByType).sort();
-
-                // Функция проверки доступности здания (ветка развития)
-                const functionalIds = currentState.purchases
-                    .filter(p => p.status === 'функционирует')
-                    .map(p => p.id);
-                function isItemAvailable(item) {
-                    const id = item.id;
-                    if (id <= 5) return true; // сезон 1 всегда доступен
-                    if (id >= 6 && id <= 9) return functionalIds.some(fid => fid <= 5);
-                    if (id >= 10 && id <= 13) return functionalIds.some(fid => fid >= 6 && fid <= 9);
-                    if (id >= 14 && id <= 17) return functionalIds.some(fid => fid >= 10 && fid <= 13);
-                    if (id >= 18 && id <= 21) return functionalIds.some(fid => fid >= 14 && fid <= 17);
-                    if (id >= 22 && id <= 25) return functionalIds.some(fid => fid >= 18 && fid <= 21);
-                    return functionalIds.some(fid => fid >= 22 && fid <= 25);
-                }
-
                 const purchasedIds = currentState.purchases.map(p => p.id);
                 const hasBoughtStatus = currentState.purchases.some(p => p.status === 'куплено');
 
-                // Проходим по категориям
                 for (let type of sortedTypes) {
-                    // Если фильтр активен и не совпадает с типом, пропускаем всю категорию (кроме all)
                     if (currentFilter !== 'all' && currentFilter !== type) continue;
-
-                    // Заголовок категории
                     shopHtml += `<div class="category-header">${type.charAt(0).toUpperCase() + type.slice(1)}</div>`;
-
                     itemsByType[type].forEach(item => {
                         const purchase = currentState.purchases.find(p => p.id === item.id);
                         const status = purchase ? purchase.status : null;
                         const isBought = !!purchase;
                         const isAwaiting = status === 'куплено';
                         const available = isItemAvailable(item);
-
                         const disabled = isBought || currentState.team.score < item.price || hasBoughtStatus || !available;
-
                         let buttonText = 'Купить';
                         if (isBought) {
                             buttonText = isAwaiting ? 'Ожидает выдачи' : 'Уже куплено';
                         } else if (!available) {
                             buttonText = 'Требуется развитие';
                         }
-
                         const cardClass = isAwaiting ? 'product-card pulse-awaiting' : 'product-card';
-
-                        // Формируем детали здания
                         let detailsHtml = '';
                         if (item.energyProvides) detailsHtml += `<div><i class="fas fa-bolt"></i> Даёт энергии: ${item.energyProvides}</div>`;
                         if (item.energyCost) detailsHtml += `<div><i class="fas fa-plug"></i> Потребляет энергии: ${item.energyCost}</div>`;
@@ -1084,7 +1131,7 @@
             }
             document.getElementById('shopItemsGrid').innerHTML = shopHtml;
 
-            // --- ИНВЕНТАРЬ ---
+            // Инвентарь
             let invHtml = '';
             if (currentState.purchases.length) {
                 currentState.purchases.forEach(item => {
@@ -1102,11 +1149,10 @@
             } else invHtml = '<p>У вас пока нет купленных зданий.</p>';
             document.getElementById('inventoryGrid').innerHTML = invHtml;
 
-            // --- ФИНАНСЫ ---
+            // Финансы
             document.getElementById('investmentsValue').textContent = currentState.team.investments || 0;
             document.getElementById('loanValue').textContent = currentState.team.loan || 0;
 
-            // Проверяем наличие зданий для финансовых операций
             const hasLoanBuilding = currentState.purchases.some(p => p.status === 'функционирует' && p.effect && p.effect.loan);
             const hasInvestBuilding = currentState.purchases.some(p => p.status === 'функционирует' && p.effect && p.effect.fund);
             const hasTotem = currentState.purchases.some(p => p.status === 'функционирует' && p.type === 'тотем');
@@ -1126,7 +1172,6 @@
             }
             document.getElementById('financeActions').innerHTML = financeActionsHtml;
 
-            // Показываем секцию тотема, если он построен
             if (hasTotem) {
                 document.getElementById('totemSection').style.display = 'block';
                 document.getElementById('totemInvested').textContent = currentState.team.totemInvested || 0;
@@ -1180,7 +1225,6 @@
                 if (result.success) {
                     showNotification('Здание куплено! Теперь подойдите к организатору за макетом.', 'success');
                     currentState.team.score = result.data.newScore;
-                    // Добавляем купленное здание в purchases (локально)
                     const newPurchase = {
                         id: itemId,
                         purchaseId: result.data.purchaseId,
@@ -1191,7 +1235,7 @@
                     };
                     currentState.purchases.push(newPurchase);
                     localStorage.setItem('team', JSON.stringify(currentState.team));
-                    updateTeamUI(); // быстро обновляем интерфейс
+                    updateTeamUI();
                 } else {
                     showNotification(result.data.error || 'Ошибка', 'error');
                 }
@@ -1310,7 +1354,7 @@
                 formData.append('action', 'totemContribute');
                 formData.append('teamId', currentState.team.id);
                 formData.append('amount', num);
-                formData.append('password', currentState.adminPassword);
+                // Пароль не передаём!
                 const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
                 const result = await res.json();
                 if (result.success) {
@@ -1353,21 +1397,24 @@
         // ================= ЗАГРУЗКА ДАННЫХ ОРГАНИЗАТОРА =================
         async function loadAdminData() {
             try {
-                const [teamsRes, itemsRes, transRes, eventsRes] = await Promise.all([
+                const [teamsRes, itemsRes, transRes, eventsRes, stateRes] = await Promise.all([
                     fetch(`${CONFIG.SCRIPT_URL}?action=getTeams`),
                     fetch(`${CONFIG.SCRIPT_URL}?action=getShopItems`),
                     fetch(`${CONFIG.SCRIPT_URL}?action=getTransactions`),
-                    fetch(`${CONFIG.SCRIPT_URL}?action=getEvents`)
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getEvents`),
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getGameState`)
                 ]);
                 const teamsData = await teamsRes.json();
                 const itemsData = await itemsRes.json();
                 const transData = await transRes.json();
                 const eventsData = eventsRes.ok ? await eventsRes.json() : { success: false };
+                const stateData = stateRes.ok ? await stateRes.json() : { data: { epoch: 0 } };
 
                 if (teamsData.success) currentState.allTeams = teamsData.data.teams || [];
                 if (itemsData.success) currentState.allItems = itemsData.data.items || [];
                 if (transData.success) currentState.transactions = transData.data.transactions || [];
                 if (eventsData.success) currentState.events = eventsData.data.events || [];
+                if (stateData.success) currentState.gameState = stateData.data;
 
                 updateAdminUI();
             } catch (e) {
@@ -1376,7 +1423,6 @@
         }
 
         function updateAdminUI() {
-            // Команды
             let teamsHtml = '';
             if (currentState.allTeams.length) {
                 currentState.allTeams.forEach(t => {
@@ -1397,14 +1443,12 @@
             } else teamsHtml = '<tr><td colspan="8">Нет команд</td></tr>';
             document.getElementById('teamsTableBody').innerHTML = teamsHtml;
 
-            // Селекты
             let options = '<option value="">Выберите команду</option>';
             currentState.allTeams.forEach(t => options += `<option value="${t.id}">${t.name} (${t.score} ⚡)</option>`);
             document.getElementById('quickTeamSelect').innerHTML = options;
             document.getElementById('manualTeamSelect').innerHTML = options;
             document.getElementById('teamContractSelect').innerHTML = options;
 
-            // Товары
             let itemsHtml = '';
             if (currentState.allItems.length) {
                 currentState.allItems.forEach(i => {
@@ -1423,7 +1467,6 @@
             } else itemsHtml = '<tr><td colspan="7">Нет товаров</td></tr>';
             document.getElementById('itemsTableBody').innerHTML = itemsHtml;
 
-            // События
             let eventsHtml = '';
             if (currentState.events.length) {
                 currentState.events.forEach(e => {
@@ -1440,14 +1483,12 @@
             } else eventsHtml = '<tr><td colspan="4">Нет событий</td></tr>';
             document.getElementById('eventsTableBody').innerHTML = eventsHtml;
 
-            // Статистика
             document.getElementById('totalTeamsStat').textContent = currentState.allTeams.length;
             const totalImp = currentState.allTeams.reduce((acc, t) => acc + (t.score || 0), 0);
             document.getElementById('totalImpulsesStat').textContent = totalImp;
             const totalPurchases = currentState.allTeams.reduce((acc, t) => acc + (t.purchasedCount || 0), 0);
             document.getElementById('totalPurchasesStat').textContent = totalPurchases;
 
-            // Последние транзакции
             let transHtml = '<table><tr><th>Время</th><th>Команда</th><th>Импульсы</th><th>Причина</th></tr>';
             if (currentState.transactions.length) {
                 currentState.transactions.slice(0,10).forEach(t => {
@@ -1497,7 +1538,7 @@
             } catch (e) { showNotification('Ошибка сети', 'error'); }
         }
 
-        // CRUD команд
+        // CRUD команд (как в предыдущей версии)
         function showAddTeamModal() { document.getElementById('addTeamModal').classList.add('active'); }
         async function addTeam() {
             const name = document.getElementById('newTeamName').value.trim();
@@ -1582,7 +1623,7 @@
             } catch (e) { showNotification('Ошибка', 'error'); }
         }
 
-        // CRUD товаров
+        // CRUD товаров (аналогично)
         function showAddItemModal() { document.getElementById('addItemModal').classList.add('active'); }
         async function addItem() {
             const name = document.getElementById('newItemName').value.trim();
@@ -1800,7 +1841,7 @@
             } catch (e) { showNotification('Ошибка сети', 'error'); }
         }
 
-        // Показать инвентарь команды для организатора
+        // ================= ИНВЕНТАРЬ ОРГАНИЗАТОРА =================
         async function showTeamInventory(teamId) {
             const team = currentState.allTeams.find(t => t.id == teamId);
             if (!team) return;
@@ -1855,8 +1896,6 @@
                 const result = await res.json();
                 if (result.success) {
                     showNotification('Статус обновлён', 'success');
-                    
-                    // Локальное обновление DOM в модальном окне
                     const inventoryList = document.getElementById('inventoryList');
                     if (inventoryList) {
                         const itemElement = inventoryList.querySelector(`li[data-purchase-id="${purchaseId}"]`);
@@ -1878,7 +1917,6 @@
                             }
                         }
                     }
-                    // Фоновая синхронизация
                     loadAdminData();
                 } else {
                     showNotification(result.data.error || 'Ошибка', 'error');
@@ -1886,7 +1924,7 @@
             } catch (e) { showNotification('Ошибка сети', 'error'); }
         }
 
-        // События
+        // ================= СОБЫТИЯ ИГРОВЫЕ =================
         async function processRoundIncome() {
             if (!confirm('Начислить доход за сезон всем командам?')) return;
             try {
@@ -1942,7 +1980,26 @@
             } catch (e) { showNotification('Ошибка сети', 'error'); }
         }
 
-        // Переключение табов организатора
+        // ================= ЭПОХИ =================
+        async function advanceEpoch() {
+            if (!confirm('Запустить следующую эпоху?')) return;
+            try {
+                const formData = new FormData();
+                formData.append('action', 'advanceEpoch');
+                formData.append('password', currentState.adminPassword);
+                const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.success) {
+                    showNotification(`Эпоха ${result.data.newEpoch} запущена`, 'success');
+                    loadAdminData();
+                    if (currentState.team) loadTeamData();
+                } else {
+                    showNotification(result.data.error || 'Ошибка', 'error');
+                }
+            } catch (e) { showNotification('Ошибка сети', 'error'); }
+        }
+
+        // ================= ПЕРЕКЛЮЧЕНИЕ ТАБОВ ОРГАНИЗАТОРА =================
         window.switchAdminTab = (tab) => {
             document.querySelectorAll('#adminScreen .tab-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
@@ -1953,7 +2010,7 @@
             if (tab !== 'teams') loadAdminData();
         };
 
-        // Автообновление
+        // ================= АВТООБНОВЛЕНИЕ =================
         let refreshInterval;
         function startAutoRefresh() {
             stopAutoRefresh();
@@ -1964,7 +2021,7 @@
         }
         function stopAutoRefresh() { if (refreshInterval) clearInterval(refreshInterval); }
 
-        // Экспорт функций для onclick
+        // Экспорт функций
         window.refreshTeamData = loadTeamData;
         window.refreshAdminData = loadAdminData;
     </script>
