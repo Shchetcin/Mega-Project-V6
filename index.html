@@ -368,7 +368,7 @@
                             <p>Колонизация Юпитера</p>
                         </div>
                     </div>
-                    <div class="version" style="color: var(--text-dim);">v6.7</div>
+                    <div class="version" style="color: var(--text-dim);">v6.9</div>
                 </div>
                 <div style="display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 15px;">
                     <div style="display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; max-width: 400px;">
@@ -531,6 +531,7 @@
                         <button class="tab-btn active" onclick="switchAdminTab('teams')">👥 Команды</button>
                         <button class="tab-btn" onclick="switchAdminTab('shop')">🛒 Товары</button>
                         <button class="tab-btn" onclick="switchAdminTab('events')">🌩️ События</button>
+                        <button class="tab-btn" onclick="switchAdminTab('final')">🏆 Итоги</button>
                         <button class="tab-btn" onclick="switchAdminTab('stats')">📊 Статистика</button>
                     </div>
 
@@ -616,6 +617,20 @@
                             <h3><i class="fas fa-file-contract"></i> Контракты</h3>
                             <select id="teamContractSelect" class="form-control" style="margin-bottom:12px;"></select>
                             <button onclick="assignContract()" class="btn btn-info">📝 Назначить случайный контракт</button>
+                        </div>
+                    </div>
+
+                    <!-- Новая вкладка ИТОГИ -->
+                    <div id="adminFinalTab" style="display: none;">
+                        <div class="table-container">
+                            <h3><i class="fas fa-trophy"></i> Итоговые баллы (после 7 сезона)</h3>
+                            <p>Формула: Импульсы × Коэффициент красоты × (0.5 + Индекс терраформинга/100)</p>
+                            <table id="finalScoresTable">
+                                <thead>
+                                    <tr><th>Место</th><th>Команда</th><th>Импульсы</th><th>Индекс терр.</th><th>Коэф. красоты</th><th>Итоговый балл</th><th>Действия</th></tr>
+                                </thead>
+                                <tbody id="finalScoresBody"></tbody>
+                            </table>
                         </div>
                     </div>
 
@@ -752,7 +767,7 @@
     <script>
         // ================= КОНФИГУРАЦИЯ =================
         const CONFIG = {
-            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwjDO_o5TE1_a85VbTsrk6DNCPezkWrg7PX5XBauqbtthpKxWI6LCs86B6mH4oimyZkBg/exec',
+            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxDK1idw-nIALwKH3C91UNqMDIZqupbt1WnTgV_macLl_8LUZ5RbB9t6S-rg0xjjkNEsw/exec',
             ADMIN_PASSWORD: 'org2026',
             REFRESH_INTERVAL: 30000
         };
@@ -769,7 +784,8 @@
             rating: [],
             contracts: [],
             events: [],
-            gameState: { epoch: 0, name: 'Заря' }
+            gameState: { epoch: 0, name: 'Заря' },
+            finalScores: []
         };
 
         let pendingBuyItemId = null;
@@ -926,14 +942,33 @@
             const epochName = currentState.gameState.name || 'Заря';
             document.getElementById('epochDisplay').innerHTML = `⚡ ${epochName}`;
 
+            // Если эпоха 7 – показываем финальное сообщение на весь экран
+            if (epoch === 7) {
+                showFinalMessage();
+                return; // не показываем остальной интерфейс
+            }
+
             document.getElementById('teamNameHeader').textContent = currentState.team.name;
             document.getElementById('teamScoreHeader').textContent = currentState.team.score;
             document.getElementById('teamScoreBadge').textContent = currentState.team.score;
 
             const usedEnergy = currentState.purchases.filter(p => p.status === 'функционирует').reduce((sum, p) => sum + (p.energyCost || 0), 0);
+
+            // Вычисляем смайлик для еды
+            const colonists = currentState.team.colonists || 0;
+            const food = currentState.team.foodSupply || 0;
+            let foodEmoji = '';
+            if (colonists === 0) {
+                foodEmoji = '🥫'; // нет колонистов
+            } else {
+                const coverage = food / (colonists * 300);
+                if (coverage >= 1) foodEmoji = '😊✅';
+                else if (coverage >= 0.8) foodEmoji = '🙂';
+                else if (coverage >= 0.6) foodEmoji = '😐';
+                else foodEmoji = '😟🍽️';
+            }
+
             const dashboardStats = document.getElementById('dashboardStats');
-            
-            // Карточка импульсов всегда без замка
             dashboardStats.innerHTML = `
                 <div class="stat-card">
                     <div class="stat-header"><div class="stat-icon"><i class="fas fa-bolt"></i></div></div>
@@ -960,7 +995,7 @@
                 </div>
                 <div class="stat-card ${epoch === 0 ? 'blurred' : ''}">
                     <div class="stat-header"><div class="stat-icon"><i class="fas fa-users"></i></div></div>
-                    <div class="stat-value">${currentState.team.colonists || 0} / ${currentState.team.foodSupply || 0}</div>
+                    <div class="stat-value">${currentState.team.colonists || 0} / ${foodEmoji}</div>
                     <div class="stat-label">Колонисты / Еда</div>
                     ${epoch === 0 ? '<div class="lock-overlay"><i class="fas fa-lock"></i></div>' : ''}
                 </div>
@@ -986,8 +1021,7 @@
                 updateShopAndInventory(epoch);
             }
 
-            const colonists = currentState.team.colonists || 0;
-            const food = currentState.team.foodSupply || 0;
+            // Предупреждение о еде
             const neededStations = colonists > 0 ? Math.ceil((colonists * 300 - food) / 300) : 0;
             const coverage = colonists > 0 ? Math.min(100, Math.round((food / (colonists * 300)) * 100)) : 100;
             if (coverage < 80) {
@@ -999,6 +1033,7 @@
                 document.getElementById('foodWarning').style.display = 'none';
             }
 
+            // Событие
             if (currentState.team.currentEvent) {
                 document.getElementById('eventText').textContent = currentState.team.currentEvent;
                 document.getElementById('currentEvent').style.display = 'block';
@@ -1006,6 +1041,7 @@
                 document.getElementById('currentEvent').style.display = 'none';
             }
 
+            // Контракт (только после старта)
             if (epoch > 0) {
                 document.getElementById('contractContainer').style.display = 'block';
                 let contractHtml = '';
@@ -1025,6 +1061,7 @@
                 document.getElementById('contractContainer').style.display = 'none';
             }
 
+            // История начислений
             let histHtml = '<table><tr><th>Время</th><th>Импульсы</th><th>Причина</th></tr>';
             if (currentState.transactions.length) {
                 currentState.transactions.slice(0,10).forEach(t => {
@@ -1034,67 +1071,60 @@
             histHtml += '</table>';
             document.getElementById('historyTable').innerHTML = histHtml;
 
+            // Рейтинг команд
             const hasRevealRating = currentState.purchases.some(p => p.status === 'функционирует' && p.effect && p.effect.revealRating);
             let rateHtml = '';
             if (hasRevealRating) {
+                // Сортировка по убыванию импульсов
+                const sorted = [...currentState.rating].sort((a, b) => b.score - a.score);
                 rateHtml = '<table><tr><th>Место</th><th>Команда</th><th>Импульсы</th></tr>';
-                currentState.rating.forEach((t,i) => {
-                    rateHtml += `<tr ${t.id==currentState.team.id?'style="background:rgba(78,84,245,0.3)"':''}><td>${i+1}</td><td>${t.name}</td><td>${t.score}</td></tr>`;
+                sorted.forEach((t, i) => {
+                    rateHtml += `<tr ${t.id == currentState.team.id ? 'style="background:rgba(78,84,245,0.3)"' : ''}><td>${i+1}</td><td>${t.name}</td><td>${t.score}</td></tr>`;
                 });
                 rateHtml += '</table>';
             } else {
+                // Без разведпункта – сортировка по названию (алфавитный порядок)
+                const sortedByName = [...currentState.rating].sort((a, b) => a.name.localeCompare(b.name));
                 rateHtml = '<table><tr><th>Команда</th><th>Баланс</th></tr>';
-                currentState.rating.forEach(t => {
+                sortedByName.forEach(t => {
                     rateHtml += `<tr><td>${t.name}</td><td><i class="fas fa-lock" style="color:var(--text-dim);"></i></td></tr>`;
                 });
                 rateHtml += '</table>';
             }
             document.getElementById('ratingTable').innerHTML = rateHtml;
-
-            if (epoch === 7) {
-                showFinalRating();
-            }
         }
 
-        function showFinalRating() {
-            const finalDiv = document.createElement('div');
-            finalDiv.style.position = 'fixed';
-            finalDiv.style.top = '0';
-            finalDiv.style.left = '0';
-            finalDiv.style.width = '100%';
-            finalDiv.style.height = '100%';
-            finalDiv.style.backgroundColor = 'rgba(0,0,0,0.95)';
-            finalDiv.style.zIndex = '2000';
-            finalDiv.style.display = 'flex';
-            finalDiv.style.flexDirection = 'column';
-            finalDiv.style.alignItems = 'center';
-            finalDiv.style.justifyContent = 'center';
-            finalDiv.style.padding = '20px';
-            finalDiv.style.overflowY = 'auto';
-            
-            let rows = '';
-            currentState.rating.forEach((t, i) => {
-                let medal = '';
-                if (i === 0) medal = '🥇';
-                else if (i === 1) medal = '🥈';
-                else if (i === 2) medal = '🥉';
-                rows += `<tr><td>${i+1}</td><td>${t.name}</td><td>${t.score}</td><td>${medal}</td></tr>`;
-            });
-
-            finalDiv.innerHTML = `
-                <h1 style="color:var(--neon-cyan); margin-bottom:30px;">Итоговый рейтинг</h1>
-                <table style="width:100%; max-width:800px; font-size:24px;">
-                    <tr><th>Место</th><th>Команда</th><th>Импульсы</th><th></th></tr>
-                    ${rows}
-                </table>
-                <button onclick="this.parentElement.remove()" class="btn btn-primary" style="margin-top:30px;">Закрыть</button>
+        function showFinalMessage() {
+            const msgDiv = document.createElement('div');
+            msgDiv.style.position = 'fixed';
+            msgDiv.style.top = '0';
+            msgDiv.style.left = '0';
+            msgDiv.style.width = '100%';
+            msgDiv.style.height = '100%';
+            msgDiv.style.backgroundColor = 'rgba(0,0,0,0.95)';
+            msgDiv.style.zIndex = '2000';
+            msgDiv.style.display = 'flex';
+            msgDiv.style.flexDirection = 'column';
+            msgDiv.style.alignItems = 'center';
+            msgDiv.style.justifyContent = 'center';
+            msgDiv.style.padding = '20px';
+            msgDiv.style.textAlign = 'center';
+            msgDiv.style.fontSize = '24px';
+            msgDiv.style.color = 'white';
+            msgDiv.innerHTML = `
+                <h1 style="color:var(--neon-cyan); margin-bottom:30px;">Уважаемые колонисты!</h1>
+                <p>Все данные симуляции получены.</p>
+                <p>Ваш счёт импульсов: <strong>${currentState.team.score}</strong></p>
+                <p>Индекс терраформирования: <strong>${currentState.team.terraformIndex || 50}%</strong></p>
+                <p style="margin-top:30px;">Ожидайте итоговых результатов.</p>
             `;
-            document.body.appendChild(finalDiv);
+            document.body.appendChild(msgDiv);
         }
 
         function updateShopAndInventory(epoch) {
             if (epoch === 0) return;
 
+            // Магазин
             document.getElementById('shopImpulseBalance').textContent = currentState.team.score;
             let shopHtml = '';
             if (currentState.allItems.length) {
@@ -1167,6 +1197,7 @@
             }
             document.getElementById('shopItemsGrid').innerHTML = shopHtml;
 
+            // Инвентарь
             let invHtml = '';
             if (currentState.purchases.length) {
                 currentState.purchases.forEach(item => {
@@ -1184,6 +1215,7 @@
             } else invHtml = '<p>У вас пока нет купленных зданий.</p>';
             document.getElementById('inventoryGrid').innerHTML = invHtml;
 
+            // Финансы
             document.getElementById('investmentsValue').textContent = currentState.team.investments || 0;
             document.getElementById('loanValue').textContent = currentState.team.loan || 0;
 
@@ -1383,6 +1415,7 @@
                 formData.append('action', 'totemContribute');
                 formData.append('teamId', currentState.team.id);
                 formData.append('amount', num);
+                // Пароль не передаём!
                 const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
                 const result = await res.json();
                 if (result.success) {
@@ -1422,24 +1455,27 @@
 
         async function loadAdminData() {
             try {
-                const [teamsRes, itemsRes, transRes, eventsRes, stateRes] = await Promise.all([
+                const [teamsRes, itemsRes, transRes, eventsRes, stateRes, finalRes] = await Promise.all([
                     fetch(`${CONFIG.SCRIPT_URL}?action=getTeams`),
                     fetch(`${CONFIG.SCRIPT_URL}?action=getShopItems`),
                     fetch(`${CONFIG.SCRIPT_URL}?action=getTransactions`),
                     fetch(`${CONFIG.SCRIPT_URL}?action=getEvents`),
-                    fetch(`${CONFIG.SCRIPT_URL}?action=getGameState`)
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getGameState`),
+                    fetch(`${CONFIG.SCRIPT_URL}?action=getFinalScores`)
                 ]);
                 const teamsData = await teamsRes.json();
                 const itemsData = await itemsRes.json();
                 const transData = await transRes.json();
                 const eventsData = eventsRes.ok ? await eventsRes.json() : { success: false };
                 const stateData = stateRes.ok ? await stateRes.json() : { data: { epoch: 0 } };
+                const finalData = finalRes.ok ? await finalRes.json() : { success: false };
 
                 if (teamsData.success) currentState.allTeams = teamsData.data.teams || [];
                 if (itemsData.success) currentState.allItems = itemsData.data.items || [];
                 if (transData.success) currentState.transactions = transData.data.transactions || [];
                 if (eventsData.success) currentState.events = eventsData.data.events || [];
                 if (stateData.success) currentState.gameState = stateData.data;
+                if (finalData.success) currentState.finalScores = finalData.data.final || [];
 
                 updateAdminUI();
             } catch (e) {
@@ -1448,6 +1484,7 @@
         }
 
         function updateAdminUI() {
+            // Команды
             let teamsHtml = '';
             if (currentState.allTeams.length) {
                 currentState.allTeams.forEach(t => {
@@ -1508,6 +1545,26 @@
             } else eventsHtml = '<tr><td colspan="4">Нет событий</td></tr>';
             document.getElementById('eventsTableBody').innerHTML = eventsHtml;
 
+            // Итоговая таблица
+            let finalHtml = '';
+            if (currentState.finalScores.length) {
+                currentState.finalScores.forEach((t, i) => {
+                    finalHtml += `<tr>
+                        <td>${i+1}</td>
+                        <td>${t.name}</td>
+                        <td>${t.score}</td>
+                        <td>${t.terraformIndex}%</td>
+                        <td><input type="number" step="0.1" min="0.5" max="1.5" value="${t.beautyFactor}" onchange="setBeautyFactor(${t.id}, this.value)" style="width:70px;"></td>
+                        <td>${t.finalScore}</td>
+                        <td><button onclick="setBeautyFactor(${t.id}, prompt('Введите коэффициент красоты (0.5-1.5)', ${t.beautyFactor}))" class="btn btn-primary btn-icon">✏️</button></td>
+                    </tr>`;
+                });
+            } else {
+                finalHtml = '<tr><td colspan="7">Нет данных</td></tr>';
+            }
+            document.getElementById('finalScoresBody').innerHTML = finalHtml;
+
+            // Статистика
             document.getElementById('totalTeamsStat').textContent = currentState.allTeams.length;
             const totalImp = currentState.allTeams.reduce((acc, t) => acc + (t.score || 0), 0);
             document.getElementById('totalImpulsesStat').textContent = totalImp;
@@ -2000,14 +2057,12 @@
         }
 
         async function advanceEpoch() {
-            if (!confirm('Запустить следующую эпоху? Будет начислен доход за текущий сезон.')) return;
+            if (!confirm('Запустить следующую эпоху?')) return;
             if (!currentState.isAdmin) {
                 showNotification('Только организатор может запускать эпоху', 'error');
                 return;
             }
             try {
-                await processRoundIncome();
-                
                 const formData = new FormData();
                 formData.append('action', 'advanceEpoch');
                 formData.append('password', currentState.adminPassword);
@@ -2023,12 +2078,37 @@
             } catch (e) { showNotification('Ошибка сети', 'error'); }
         }
 
+        async function setBeautyFactor(teamId, value) {
+            if (!value) return;
+            const num = parseFloat(value);
+            if (isNaN(num) || num < 0.5 || num > 1.5) {
+                showNotification('Коэффициент должен быть от 0.5 до 1.5', 'warning');
+                return;
+            }
+            try {
+                const formData = new FormData();
+                formData.append('action', 'setBeautyFactor');
+                formData.append('teamId', teamId);
+                formData.append('value', num);
+                formData.append('password', currentState.adminPassword);
+                const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.success) {
+                    showNotification('Коэффициент обновлён', 'success');
+                    loadAdminData();
+                } else {
+                    showNotification(result.data.error || 'Ошибка', 'error');
+                }
+            } catch (e) { showNotification('Ошибка сети', 'error'); }
+        }
+
         window.switchAdminTab = (tab) => {
             document.querySelectorAll('#adminScreen .tab-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
             document.getElementById('adminTeamsTab').style.display = tab === 'teams' ? 'block' : 'none';
             document.getElementById('adminShopTab').style.display = tab === 'shop' ? 'block' : 'none';
             document.getElementById('adminEventsTab').style.display = tab === 'events' ? 'block' : 'none';
+            document.getElementById('adminFinalTab').style.display = tab === 'final' ? 'block' : 'none';
             document.getElementById('adminStatsTab').style.display = tab === 'stats' ? 'block' : 'none';
             if (tab !== 'teams') loadAdminData();
         };
@@ -2048,4 +2128,3 @@
     </script>
 </body>
 </html>
-
