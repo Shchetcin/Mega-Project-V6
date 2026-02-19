@@ -36,7 +36,6 @@
             overflow-x: hidden;
         }
 
-        /* Звёздный фон */
         body::before {
             content: '';
             position: fixed;
@@ -153,7 +152,6 @@
         }
         .stat-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* Затемнение и замок для неактивных элементов */
         .blurred {
             filter: blur(var(--blur-amount));
             opacity: 0.5;
@@ -301,7 +299,6 @@
             100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
         }
 
-        /* Пульсация для карточек в магазине, ожидающих выдачи макета */
         .pulse-awaiting {
             animation: pulse-gold 2s infinite;
         }
@@ -312,7 +309,6 @@
             100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
         }
 
-        /* Предупреждение о еде */
         .food-warning {
             background: rgba(255, 100, 100, 0.2);
             border-radius: 10px;
@@ -328,7 +324,6 @@
             display: none;
         }
 
-        /* Затемнённые карточки */
         .stat-card.blurred .stat-value,
         .stat-card.blurred .stat-label,
         .stat-card.blurred .stat-icon {
@@ -336,7 +331,6 @@
             opacity: 0.5;
         }
 
-        /* Стили для финала эпохи 7 */
         .final-rating {
             font-size: 24px;
             text-align: center;
@@ -374,7 +368,7 @@
                             <p>Колонизация Юпитера</p>
                         </div>
                     </div>
-                    <div class="version" style="color: var(--text-dim);">v6.6</div>
+                    <div class="version" style="color: var(--text-dim);">v6.7</div>
                 </div>
                 <div style="display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 15px;">
                     <div style="display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; max-width: 400px;">
@@ -434,34 +428,28 @@
 
                     <!-- Вкладка ДАШБОРД -->
                     <div id="teamDashboardTab" style="display: block;">
-                        <!-- Основные карточки статистики -->
                         <div class="stats-grid" id="dashboardStats"></div>
 
-                        <!-- Блок предупреждения о еде (виден всегда, но данные могут быть скрыты до старта) -->
                         <div id="foodWarning" class="food-warning">
                             <i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i>
                             <span id="foodWarningText"></span>
                         </div>
 
-                        <!-- Блок текущего события -->
                         <div id="currentEvent" class="event-banner">
                             <i class="fas fa-dice"></i> <strong>Событие сезона:</strong> <span id="eventText"></span>
                         </div>
 
-                        <!-- Контракт (скрыт до старта) -->
                         <div id="contractContainer" class="table-container" style="display: none;">
                             <h3 style="margin-bottom:15px;"><i class="fas fa-file-contract"></i> Секретный контракт</h3>
                             <div id="contractInfo">Загрузка...</div>
                             <button onclick="checkContract()" class="btn btn-warning" style="margin-top:10px;">Проверить выполнение</button>
                         </div>
 
-                        <!-- История начислений (видна всегда) -->
                         <div class="table-container">
                             <h3 style="margin-bottom:15px;"><i class="fas fa-history"></i> История начислений</h3>
                             <div id="historyTable">Загрузка...</div>
                         </div>
 
-                        <!-- Рейтинг команд (с замком, если нет разведпункта) -->
                         <div class="table-container" id="ratingContainer">
                             <h3 style="margin-bottom:15px;"><i class="fas fa-chart-line"></i> Рейтинг команд</h3>
                             <div id="ratingTable">Загрузка...</div>
@@ -474,7 +462,6 @@
                             <h2><i class="fas fa-store"></i> Здания Юпитера</h2>
                             <span class="impulse-badge">Баланс: <span id="shopImpulseBalance">0</span></span>
                         </div>
-                        <!-- Фильтры по типу -->
                         <div id="shopFilters" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
                             <button class="btn btn-outline filter-btn active" data-type="all">Все</button>
                             <button class="btn btn-outline filter-btn" data-type="жильё">Жильё</button>
@@ -512,9 +499,9 @@
                             <h3>Доступные операции</h3>
                             <div id="financeActions"></div>
                         </div>
-                        <!-- Блок тотема (появляется только после постройки) -->
+                        <!-- Блок тотема с новой иконкой -->
                         <div id="totemSection" style="display: none;" class="table-container">
-                            <h3><i class="fas fa-tree"></i> Тотем колонии</h3>
+                            <h3><i class="fas fa-feather"></i> Тотем колонии</h3>
                             <p>Внесённый номинал: <span id="totemInvested">0</span> ⚡</p>
                             <button onclick="totemContribute()" class="btn btn-warning">🙏 Внести в тотем</button>
                         </div>
@@ -561,7 +548,6 @@
                             </table>
                         </div>
 
-                        <!-- Быстрое начисление -->
                         <div class="stats-grid">
                             <div class="table-container">
                                 <h3><i class="fas fa-bolt"></i> Быстрое начисление</h3>
@@ -616,7 +602,6 @@
                                 <button onclick="spinWheel()" class="btn btn-primary" style="width:100%;">🎲 Крутить колесо</button>
                             </div>
                         </div>
-                        <!-- Список событий -->
                         <div class="table-container">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:15px;">
                                 <h3><i class="fas fa-list"></i> События колеса фортуны</h3>
@@ -627,7 +612,6 @@
                                 <tbody id="eventsTableBody"></tbody>
                             </table>
                         </div>
-                        <!-- Контракты -->
                         <div class="table-container">
                             <h3><i class="fas fa-file-contract"></i> Контракты</h3>
                             <select id="teamContractSelect" class="form-control" style="margin-bottom:12px;"></select>
@@ -653,21 +637,122 @@
     </div>
 
     <!-- ========== МОДАЛЬНЫЕ ОКНА ========== -->
-    <!-- (оставляем как в предыдущей версии, не меняем) -->
-    <div id="addTeamModal" class="modal">...</div>
-    <div id="editTeamModal" class="modal">...</div>
-    <div id="addItemModal" class="modal">...</div>
-    <div id="editItemModal" class="modal">...</div>
-    <div id="addEventModal" class="modal">...</div>
-    <div id="inventoryModal" class="modal">...</div>
-    <div id="confirmBuyModal" class="modal">...</div>
+    <!-- Добавление команды -->
+    <div id="addTeamModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h2>Новая команда</h2><button class="modal-close" onclick="closeModal('addTeamModal')">&times;</button></div>
+            <div class="form-group"><label>Название</label><input type="text" id="newTeamName" class="form-control"></div>
+            <div class="form-group"><label>Код (6 символов)</label><input type="text" id="newTeamCode" class="form-control" maxlength="6"></div>
+            <div class="form-group"><label>Контакт</label><input type="text" id="newTeamContact" class="form-control"></div>
+            <button onclick="addTeam()" class="btn btn-primary" style="width:100%;">Создать</button>
+        </div>
+    </div>
+
+    <!-- Редактирование команды -->
+    <div id="editTeamModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h2>Редактировать команду</h2><button class="modal-close" onclick="closeModal('editTeamModal')">&times;</button></div>
+            <input type="hidden" id="editTeamId">
+            <div class="form-group"><label>Название</label><input type="text" id="editTeamName" class="form-control"></div>
+            <div class="form-group"><label>Код</label><input type="text" id="editTeamCode" class="form-control" maxlength="6"></div>
+            <div class="form-group"><label>Контакт</label><input type="text" id="editTeamContact" class="form-control"></div>
+            <div style="display:flex; gap:10px;"><button onclick="updateTeam()" class="btn btn-primary" style="flex:1;">Сохранить</button><button onclick="deleteTeam()" class="btn btn-danger" style="flex:1;">Удалить</button></div>
+        </div>
+    </div>
+
+    <!-- Добавление товара -->
+    <div id="addItemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h2>Новое здание</h2><button class="modal-close" onclick="closeModal('addItemModal')">&times;</button></div>
+            <div class="form-group"><label>Название</label><input type="text" id="newItemName" class="form-control"></div>
+            <div class="form-group"><label>Описание</label><input type="text" id="newItemDesc" class="form-control"></div>
+            <div class="form-group"><label>Цена</label><input type="number" id="newItemPrice" class="form-control"></div>
+            <div class="form-group"><label>Иконка (Font Awesome)</label><input type="text" id="newItemIcon" class="form-control" value="fa-solid fa-question"></div>
+            <div class="form-group"><label>Тип</label><input type="text" id="newItemType" class="form-control" value="общее"></div>
+            <div class="form-group"><label>Энергия даёт</label><input type="number" id="newItemEnergyProvides" class="form-control" value="0"></div>
+            <div class="form-group"><label>Энергия потребляет</label><input type="number" id="newItemEnergyCost" class="form-control" value="0"></div>
+            <div class="form-group"><label>Колонисты даёт</label><input type="number" id="newItemColonistsProvides" class="form-control" value="0"></div>
+            <div class="form-group"><label>Еда даёт</label><input type="number" id="newItemFoodProvides" class="form-control" value="0"></div>
+            <div class="form-group"><label>Бонус терраформинга</label><input type="number" id="newItemTerraformBonus" class="form-control" value="0"></div>
+            <div class="form-group"><label><input type="checkbox" id="newItemProduction"> Доходное производство</label></div>
+            <div class="form-group"><label><input type="checkbox" id="newItemUnique"> Уникальное (только одна команда)</label></div>
+            <div class="form-group"><label>Макс на команду</label><input type="number" id="newItemMaxPerTeam" class="form-control" value="0"></div>
+            <div class="form-group"><label>Эффект (JSON)</label><textarea id="newItemEffect" class="form-control" rows="3">{}</textarea></div>
+            <button onclick="addItem()" class="btn btn-primary" style="width:100%;">Добавить</button>
+        </div>
+    </div>
+
+    <!-- Редактирование товара -->
+    <div id="editItemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h2>Редактировать здание</h2><button class="modal-close" onclick="closeModal('editItemModal')">&times;</button></div>
+            <input type="hidden" id="editItemId">
+            <div class="form-group"><label>Название</label><input type="text" id="editItemName" class="form-control"></div>
+            <div class="form-group"><label>Описание</label><input type="text" id="editItemDesc" class="form-control"></div>
+            <div class="form-group"><label>Цена</label><input type="number" id="editItemPrice" class="form-control"></div>
+            <div class="form-group"><label>Иконка</label><input type="text" id="editItemIcon" class="form-control"></div>
+            <div class="form-group"><label>Тип</label><input type="text" id="editItemType" class="form-control"></div>
+            <div class="form-group"><label>Энергия даёт</label><input type="number" id="editItemEnergyProvides" class="form-control"></div>
+            <div class="form-group"><label>Энергия потребляет</label><input type="number" id="editItemEnergyCost" class="form-control"></div>
+            <div class="form-group"><label>Колонисты даёт</label><input type="number" id="editItemColonistsProvides" class="form-control"></div>
+            <div class="form-group"><label>Еда даёт</label><input type="number" id="editItemFoodProvides" class="form-control"></div>
+            <div class="form-group"><label>Бонус терраформинга</label><input type="number" id="editItemTerraformBonus" class="form-control"></div>
+            <div class="form-group"><label><input type="checkbox" id="editItemProduction"> Доходное производство</label></div>
+            <div class="form-group"><label><input type="checkbox" id="editItemUnique"> Уникальное</label></div>
+            <div class="form-group"><label>Макс на команду</label><input type="number" id="editItemMaxPerTeam" class="form-control"></div>
+            <div class="form-group"><label>Эффект (JSON)</label><textarea id="editItemEffect" class="form-control" rows="3"></textarea></div>
+            <div style="display:flex; gap:10px;"><button onclick="updateItem()" class="btn btn-primary" style="flex:1;">Сохранить</button><button onclick="deleteItem()" class="btn btn-danger" style="flex:1;">Удалить</button></div>
+        </div>
+    </div>
+
+    <!-- Добавление/редактирование события -->
+    <div id="addEventModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h2 id="eventModalTitle">Добавить событие</h2><button class="modal-close" onclick="closeModal('addEventModal')">&times;</button></div>
+            <input type="hidden" id="editEventId">
+            <div class="form-group"><label>Название</label><input type="text" id="eventName" class="form-control"></div>
+            <div class="form-group"><label>Тип (positive/negative)</label>
+                <select id="eventType" class="form-control">
+                    <option value="positive">Позитивное</option>
+                    <option value="negative">Негативное</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Описание эффекта</label><textarea id="eventDescription" class="form-control" rows="3"></textarea></div>
+            <div class="form-group"><label>Эффект (JSON)</label><textarea id="eventEffect" class="form-control" rows="5">{
+  "type": "incomeBoost",
+  "target": "добыча",
+  "value": 0.1
+}</textarea></div>
+            <button onclick="saveEvent()" class="btn btn-primary" style="width:100%;">Сохранить</button>
+        </div>
+    </div>
+
+    <!-- Инвентарь команды (для организатора) -->
+    <div id="inventoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h2 id="inventoryTeamName">Инвентарь команды</h2><button class="modal-close" onclick="closeModal('inventoryModal')">&times;</button></div>
+            <div id="inventoryList" style="max-height: 60vh; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения покупки -->
+    <div id="confirmBuyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h2>Подтверждение покупки</h2><button class="modal-close" onclick="closeModal('confirmBuyModal')">&times;</button></div>
+            <div id="confirmBuyDetails"></div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button onclick="executeBuy()" class="btn btn-success" style="flex:1;">Подтвердить</button>
+                <button onclick="closeModal('confirmBuyModal')" class="btn btn-danger" style="flex:1;">Отмена</button>
+            </div>
+        </div>
+    </div>
 
     <div id="notification" class="notification"></div>
 
     <script>
         // ================= КОНФИГУРАЦИЯ =================
         const CONFIG = {
-            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxUXAGqRMn12CGkqoblgQ7Hcn6ANL1YWK8Ca-EL0leC25WJ5q0GEnTGGIMip3PO_wxEAw/exec',
+            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw66jO8o5X5XdCSgYWKBgwihpmW7AesJVyHZox7yJ0DWNakszo_nCcJorzgHxSevXiEtA/exec',
             ADMIN_PASSWORD: 'org2026',
             REFRESH_INTERVAL: 30000
         };
@@ -841,20 +926,19 @@
             const epochName = currentState.gameState.name || 'Заря';
             document.getElementById('epochDisplay').innerHTML = `⚡ ${epochName}`;
 
-            // Шапка
             document.getElementById('teamNameHeader').textContent = currentState.team.name;
             document.getElementById('teamScoreHeader').textContent = currentState.team.score;
             document.getElementById('teamScoreBadge').textContent = currentState.team.score;
 
-            // Статистика на дашборде (карточки всегда видны, но до старта с затемнением)
             const usedEnergy = currentState.purchases.filter(p => p.status === 'функционирует').reduce((sum, p) => sum + (p.energyCost || 0), 0);
             const dashboardStats = document.getElementById('dashboardStats');
+            
+            // Карточка импульсов всегда без замка
             dashboardStats.innerHTML = `
-                <div class="stat-card ${epoch === 0 ? 'blurred' : ''}">
+                <div class="stat-card">
                     <div class="stat-header"><div class="stat-icon"><i class="fas fa-bolt"></i></div></div>
                     <div class="stat-value">${currentState.team.score}</div>
                     <div class="stat-label">Мои импульсы</div>
-                    ${epoch === 0 ? '<div class="lock-overlay"><i class="fas fa-lock"></i></div>' : ''}
                 </div>
                 <div class="stat-card ${epoch === 0 ? 'blurred' : ''}">
                     <div class="stat-header"><div class="stat-icon"><i class="fas fa-users"></i></div></div>
@@ -882,10 +966,9 @@
                 </div>
             `;
 
-            // Блокируем/разблокируем вкладки (кроме дашборда)
             const tabBtns = document.querySelectorAll('#teamScreen .tab-btn');
             tabBtns.forEach((btn, idx) => {
-                if (idx === 0) return; // дашборд всегда доступен
+                if (idx === 0) return;
                 if (epoch === 0) {
                     btn.style.pointerEvents = 'none';
                     btn.style.opacity = '0.3';
@@ -895,20 +978,14 @@
                 }
             });
 
-            // Если эпоха 0 – другие вкладки не отображаем (заглушка)
             if (epoch === 0) {
                 document.getElementById('teamShopTab').innerHTML = '<div class="table-container"><p style="text-align:center;">Магазин откроется после старта эпохи</p></div>';
                 document.getElementById('teamInventoryTab').innerHTML = '<div class="table-container"><p style="text-align:center;">Инвентарь откроется после старта эпохи</p></div>';
                 document.getElementById('teamFinanceTab').innerHTML = '<div class="table-container"><p style="text-align:center;">Финансы откроются после старта эпохи</p></div>';
             } else {
-                // Если эпоха >=1 – отображаем полный функционал вкладок (сами вкладки уже видны, содержимое подгружается)
-                // Но содержимое вкладок должно обновляться здесь же.
-                // Для простоты мы вызываем обновление магазина, инвентаря и финансов только если соответствующая вкладка активна?
-                // Лучше обновлять всё сразу, как в предыдущей версии.
                 updateShopAndInventory(epoch);
             }
 
-            // Еда (всегда видна, но данные могут быть нулевыми до старта)
             const colonists = currentState.team.colonists || 0;
             const food = currentState.team.foodSupply || 0;
             const neededStations = colonists > 0 ? Math.ceil((colonists * 300 - food) / 300) : 0;
@@ -922,7 +999,6 @@
                 document.getElementById('foodWarning').style.display = 'none';
             }
 
-            // Событие
             if (currentState.team.currentEvent) {
                 document.getElementById('eventText').textContent = currentState.team.currentEvent;
                 document.getElementById('currentEvent').style.display = 'block';
@@ -930,7 +1006,6 @@
                 document.getElementById('currentEvent').style.display = 'none';
             }
 
-            // Контракт – показываем только после старта (epoch > 0)
             if (epoch > 0) {
                 document.getElementById('contractContainer').style.display = 'block';
                 let contractHtml = '';
@@ -950,7 +1025,6 @@
                 document.getElementById('contractContainer').style.display = 'none';
             }
 
-            // История начислений (всегда видна)
             let histHtml = '<table><tr><th>Время</th><th>Импульсы</th><th>Причина</th></tr>';
             if (currentState.transactions.length) {
                 currentState.transactions.slice(0,10).forEach(t => {
@@ -960,34 +1034,29 @@
             histHtml += '</table>';
             document.getElementById('historyTable').innerHTML = histHtml;
 
-            // Рейтинг команд – всегда виден, но с замком, если нет разведпункта
             const hasRevealRating = currentState.purchases.some(p => p.status === 'функционирует' && p.effect && p.effect.revealRating);
             let rateHtml = '';
             if (hasRevealRating) {
-                // Показываем с местами
                 rateHtml = '<table><tr><th>Место</th><th>Команда</th><th>Импульсы</th></tr>';
                 currentState.rating.forEach((t,i) => {
                     rateHtml += `<tr ${t.id==currentState.team.id?'style="background:rgba(78,84,245,0.3)"':''}><td>${i+1}</td><td>${t.name}</td><td>${t.score}</td></tr>`;
                 });
                 rateHtml += '</table>';
             } else {
-                // Показываем без мест, с замком справа от названия
-                rateHtml = '<table><tr><th>Команда</th><th>Импульсы</th><th></th></tr>';
+                rateHtml = '<table><tr><th>Команда</th><th>Баланс</th></tr>';
                 currentState.rating.forEach(t => {
-                    rateHtml += `<tr><td>${t.name}</td><td>${t.score}</td><td><i class="fas fa-lock" style="color:var(--text-dim);"></i></td></tr>`;
+                    rateHtml += `<tr><td>${t.name}</td><td><i class="fas fa-lock" style="color:var(--text-dim);"></i></td></tr>`;
                 });
                 rateHtml += '</table>';
             }
             document.getElementById('ratingTable').innerHTML = rateHtml;
 
-            // Если эпоха 7 – выводим рейтинг крупно поверх всего (на весь экран)
             if (epoch === 7) {
                 showFinalRating();
             }
         }
 
         function showFinalRating() {
-            // Создаём модальное окно или большой блок поверх
             const finalDiv = document.createElement('div');
             finalDiv.style.position = 'fixed';
             finalDiv.style.top = '0';
@@ -1002,11 +1071,21 @@
             finalDiv.style.justifyContent = 'center';
             finalDiv.style.padding = '20px';
             finalDiv.style.overflowY = 'auto';
+            
+            let rows = '';
+            currentState.rating.forEach((t, i) => {
+                let medal = '';
+                if (i === 0) medal = '🥇';
+                else if (i === 1) medal = '🥈';
+                else if (i === 2) medal = '🥉';
+                rows += `<tr><td>${i+1}</td><td>${t.name}</td><td>${t.score}</td><td>${medal}</td></tr>`;
+            });
+
             finalDiv.innerHTML = `
                 <h1 style="color:var(--neon-cyan); margin-bottom:30px;">Итоговый рейтинг</h1>
                 <table style="width:100%; max-width:800px; font-size:24px;">
-                    <tr><th>Место</th><th>Команда</th><th>Импульсы</th></tr>
-                    ${currentState.rating.map((t,i) => `<tr><td>${i+1}</td><td>${t.name}</td><td>${t.score}</td></tr>`).join('')}
+                    <tr><th>Место</th><th>Команда</th><th>Импульсы</th><th></th></tr>
+                    ${rows}
                 </table>
                 <button onclick="this.parentElement.remove()" class="btn btn-primary" style="margin-top:30px;">Закрыть</button>
             `;
@@ -1016,7 +1095,6 @@
         function updateShopAndInventory(epoch) {
             if (epoch === 0) return;
 
-            // Магазин
             document.getElementById('shopImpulseBalance').textContent = currentState.team.score;
             let shopHtml = '';
             if (currentState.allItems.length) {
@@ -1029,7 +1107,8 @@
                     if (id >= 14 && id <= 17) return functionalIds.some(fid => fid >= 10 && fid <= 13);
                     if (id >= 18 && id <= 21) return functionalIds.some(fid => fid >= 14 && fid <= 17);
                     if (id >= 22 && id <= 27) return functionalIds.some(fid => fid >= 18 && fid <= 21);
-                    return functionalIds.some(fid => fid >= 22 && fid <= 27);
+                    if (id >= 28 && id <= 33) return functionalIds.some(fid => fid >= 22 && fid <= 27);
+                    return functionalIds.some(fid => fid >= 28 && fid <= 33);
                 }
 
                 const itemsByType = {};
@@ -1088,7 +1167,6 @@
             }
             document.getElementById('shopItemsGrid').innerHTML = shopHtml;
 
-            // Инвентарь
             let invHtml = '';
             if (currentState.purchases.length) {
                 currentState.purchases.forEach(item => {
@@ -1106,7 +1184,6 @@
             } else invHtml = '<p>У вас пока нет купленных зданий.</p>';
             document.getElementById('inventoryGrid').innerHTML = invHtml;
 
-            // Финансы
             document.getElementById('investmentsValue').textContent = currentState.team.investments || 0;
             document.getElementById('loanValue').textContent = currentState.team.loan || 0;
 
@@ -1150,7 +1227,6 @@
             return '';
         }
 
-        // ================= ПОДТВЕРЖДЕНИЕ ПОКУПКИ =================
         function confirmBuy(itemId) {
             const item = currentState.allItems.find(i => i.id === itemId);
             if (!item) return;
@@ -1169,7 +1245,6 @@
             pendingBuyItemId = null;
         }
 
-        // ================= ПОКУПКА =================
         async function buyItem(itemId) {
             if (!currentState.team) return;
             try {
@@ -1199,7 +1274,6 @@
             } catch (e) { showNotification('Ошибка сети', 'error'); }
         }
 
-        // ================= АКТИВАЦИИ =================
         async function activateVenture(purchaseId) {
             if (!confirm('Активировать венчурный стартап? Результат случаен.')) return;
             try {
@@ -1240,7 +1314,6 @@
             showNotification('Функция в разработке', 'info');
         }
 
-        // ================= ФИНАНСЫ =================
         async function investInFund() {
             const amount = prompt('Сумма инвестиции (минимум 5):', '5');
             if (!amount) return;
@@ -1300,7 +1373,6 @@
             } catch (e) { showNotification('Ошибка сети', 'error'); }
         }
 
-        // ================= ТОТЕМ =================
         async function totemContribute() {
             const amount = prompt('Сколько импульсов внести в тотем?', '10');
             if (!amount) return;
@@ -1311,7 +1383,6 @@
                 formData.append('action', 'totemContribute');
                 formData.append('teamId', currentState.team.id);
                 formData.append('amount', num);
-                // Пароль не передаём!
                 const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
                 const result = await res.json();
                 if (result.success) {
@@ -1323,7 +1394,6 @@
             } catch (e) { showNotification('Ошибка сети', 'error'); }
         }
 
-        // ================= КОНТРАКТ =================
         async function checkContract() {
             try {
                 const formData = new FormData();
@@ -1340,7 +1410,6 @@
             } catch (e) { showNotification('Ошибка сети', 'error'); }
         }
 
-        // ================= ПЕРЕКЛЮЧЕНИЕ ТАБОВ УЧАСТНИКА =================
         window.switchTeamTab = (tab) => {
             document.querySelectorAll('#teamScreen .tab-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
@@ -1348,11 +1417,9 @@
             document.getElementById('teamShopTab').style.display = tab === 'shop' ? 'block' : 'none';
             document.getElementById('teamInventoryTab').style.display = tab === 'inventory' ? 'block' : 'none';
             document.getElementById('teamFinanceTab').style.display = tab === 'finance' ? 'block' : 'none';
-            // Обновляем данные при переключении
             if (tab !== 'dashboard') loadTeamData();
         };
 
-        // ================= ЗАГРУЗКА ДАННЫХ ОРГАНИЗАТОРА =================
         async function loadAdminData() {
             try {
                 const [teamsRes, itemsRes, transRes, eventsRes, stateRes] = await Promise.all([
@@ -1458,7 +1525,6 @@
             document.getElementById('recentTransactionsAdmin').innerHTML = transHtml;
         }
 
-        // ================= ОРГАНИЗАТОР: ДЕЙСТВИЯ =================
         function quickAdd(points, reason) {
             const teamId = document.getElementById('quickTeamSelect').value;
             if (!teamId) return showNotification('Выберите команду', 'warning');
@@ -1496,7 +1562,6 @@
             } catch (e) { showNotification('Ошибка сети', 'error'); }
         }
 
-        // CRUD команд (как в предыдущей версии)
         function showAddTeamModal() { document.getElementById('addTeamModal').classList.add('active'); }
         async function addTeam() {
             const name = document.getElementById('newTeamName').value.trim();
@@ -1581,7 +1646,6 @@
             } catch (e) { showNotification('Ошибка', 'error'); }
         }
 
-        // CRUD товаров (аналогично)
         function showAddItemModal() { document.getElementById('addItemModal').classList.add('active'); }
         async function addItem() {
             const name = document.getElementById('newItemName').value.trim();
@@ -1725,7 +1789,6 @@
             } catch (e) { showNotification('Ошибка', 'error'); }
         }
 
-        // ================= СОБЫТИЯ (CRUD) =================
         function showAddEventModal() {
             document.getElementById('eventModalTitle').textContent = 'Добавить событие';
             document.getElementById('editEventId').value = '';
@@ -1799,7 +1862,6 @@
             } catch (e) { showNotification('Ошибка сети', 'error'); }
         }
 
-        // ================= ИНВЕНТАРЬ ОРГАНИЗАТОРА =================
         async function showTeamInventory(teamId) {
             const team = currentState.allTeams.find(t => t.id == teamId);
             if (!team) return;
@@ -1882,7 +1944,6 @@
             } catch (e) { showNotification('Ошибка сети', 'error'); }
         }
 
-        // ================= СОБЫТИЯ ИГРОВЫЕ =================
         async function processRoundIncome() {
             if (!confirm('Начислить доход за сезон всем командам?')) return;
             try {
@@ -1938,10 +1999,15 @@
             } catch (e) { showNotification('Ошибка сети', 'error'); }
         }
 
-        // ================= ЭПОХИ =================
         async function advanceEpoch() {
-            if (!confirm('Запустить следующую эпоху?')) return;
+            if (!confirm('Запустить следующую эпоху? Будет начислен доход за текущий сезон.')) return;
+            if (!currentState.isAdmin) {
+                showNotification('Только организатор может запускать эпоху', 'error');
+                return;
+            }
             try {
+                await processRoundIncome();
+                
                 const formData = new FormData();
                 formData.append('action', 'advanceEpoch');
                 formData.append('password', currentState.adminPassword);
@@ -1957,7 +2023,6 @@
             } catch (e) { showNotification('Ошибка сети', 'error'); }
         }
 
-        // ================= ПЕРЕКЛЮЧЕНИЕ ТАБОВ ОРГАНИЗАТОРА =================
         window.switchAdminTab = (tab) => {
             document.querySelectorAll('#adminScreen .tab-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
@@ -1968,7 +2033,6 @@
             if (tab !== 'teams') loadAdminData();
         };
 
-        // ================= АВТООБНОВЛЕНИЕ =================
         let refreshInterval;
         function startAutoRefresh() {
             stopAutoRefresh();
@@ -1979,7 +2043,6 @@
         }
         function stopAutoRefresh() { if (refreshInterval) clearInterval(refreshInterval); }
 
-        // Экспорт функций
         window.refreshTeamData = loadTeamData;
         window.refreshAdminData = loadAdminData;
     </script>
