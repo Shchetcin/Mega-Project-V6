@@ -130,12 +130,17 @@
         .dashboard { padding: 20px; }
 
         .stats-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px; margin-bottom: 25px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
         }
         .stat-card {
-            background: var(--card-bg); border-radius: 25px; padding: 18px;
-            border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(5px);
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 18px;
+            border: 1px solid rgba(255,255,255,0.05);
+            backdrop-filter: blur(5px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.5);
             position: relative;
         }
@@ -146,9 +151,12 @@
             color: var(--neon-cyan);
         }
         .stat-value {
-            font-size: 32px; font-weight: 700; line-height: 1;
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1;
             background: linear-gradient(135deg, #fff, #b0b0ff);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         .stat-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
 
@@ -346,6 +354,14 @@
             font-size: 22px;
         }
 
+        /* Стили для смайлика сытости */
+        .satiety-emoji {
+            font-size: 32px;
+            line-height: 1;
+            display: inline-block;
+            filter: none; /* отключаем возможные фильтры */
+        }
+
         @media (max-width: 600px) {
             .header { flex-direction: column; align-items: stretch; }
             .tabs { justify-content: flex-start; }
@@ -368,7 +384,7 @@
                             <p>Колонизация Юпитера</p>
                         </div>
                     </div>
-                    <div class="version" style="color: var(--text-dim);">v6.9</div>
+                    <div class="version" style="color: var(--text-dim);">v6.11</div>
                 </div>
                 <div style="display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 15px;">
                     <div style="display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; max-width: 400px;">
@@ -767,7 +783,7 @@
     <script>
         // ================= КОНФИГУРАЦИЯ =================
         const CONFIG = {
-            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxDK1idw-nIALwKH3C91UNqMDIZqupbt1WnTgV_macLl_8LUZ5RbB9t6S-rg0xjjkNEsw/exec',
+            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwZnLnuVEUxK5ufg4grie7Bo-ZAaVahuUZmOOROAsr1Yw4yfyiRJFGvHtX1HNRT7pYfzw/exec',
             ADMIN_PASSWORD: 'org2026',
             REFRESH_INTERVAL: 30000
         };
@@ -790,6 +806,7 @@
 
         let pendingBuyItemId = null;
         let currentFilter = 'all';
+        let isBuying = false; // флаг для блокировки двойной покупки
 
         // ================= ОБЩИЕ ФУНКЦИИ =================
         function showNotification(message, type = 'info') {
@@ -936,6 +953,14 @@
             }
         }
 
+        // Функция для получения эмодзи сытости и его цвета (опционально)
+        function getFoodEmoji(coverage) {
+            if (coverage >= 1) return '😊';
+            if (coverage >= 0.8) return '🙂';
+            if (coverage >= 0.6) return '😐';
+            return '😟';
+        }
+
         function updateTeamUI() {
             if (!currentState.team) return;
             const epoch = currentState.gameState.epoch || 0;
@@ -954,19 +979,11 @@
 
             const usedEnergy = currentState.purchases.filter(p => p.status === 'функционирует').reduce((sum, p) => sum + (p.energyCost || 0), 0);
 
-            // Вычисляем смайлик для еды
+            // Расчёт сытости
             const colonists = currentState.team.colonists || 0;
             const food = currentState.team.foodSupply || 0;
-            let foodEmoji = '';
-            if (colonists === 0) {
-                foodEmoji = '🥫'; // нет колонистов
-            } else {
-                const coverage = food / (colonists * 300);
-                if (coverage >= 1) foodEmoji = '😊✅';
-                else if (coverage >= 0.8) foodEmoji = '🙂';
-                else if (coverage >= 0.6) foodEmoji = '😐';
-                else foodEmoji = '😟🍽️';
-            }
+            const coverage = colonists > 0 ? Math.min(1, food / (colonists * 300)) : 1;
+            const foodEmoji = getFoodEmoji(coverage);
 
             const dashboardStats = document.getElementById('dashboardStats');
             dashboardStats.innerHTML = `
@@ -994,9 +1011,14 @@
                     ${epoch === 0 ? '<div class="lock-overlay"><i class="fas fa-lock"></i></div>' : ''}
                 </div>
                 <div class="stat-card ${epoch === 0 ? 'blurred' : ''}">
-                    <div class="stat-header"><div class="stat-icon"><i class="fas fa-users"></i></div></div>
-                    <div class="stat-value">${currentState.team.colonists || 0} / ${foodEmoji}</div>
-                    <div class="stat-label">Колонисты / Еда</div>
+                    <div class="stat-header"><div class="stat-icon"><i class="fas fa-utensils"></i></div></div>
+                    <div style="display: flex; align-items: center; gap: 8px; font-size: 32px;">
+                        <span class="stat-value" style="font-size: 32px;">${colonists}</span>
+                        <span style="color: var(--text-dim);">/</span>
+                        <span class="stat-value" style="font-size: 32px;">${food}</span>
+                        <span class="satiety-emoji">${foodEmoji}</span>
+                    </div>
+                    <div class="stat-label">Колонисты / Еда / Сытость</div>
                     ${epoch === 0 ? '<div class="lock-overlay"><i class="fas fa-lock"></i></div>' : ''}
                 </div>
             `;
@@ -1023,11 +1045,11 @@
 
             // Предупреждение о еде
             const neededStations = colonists > 0 ? Math.ceil((colonists * 300 - food) / 300) : 0;
-            const coverage = colonists > 0 ? Math.min(100, Math.round((food / (colonists * 300)) * 100)) : 100;
-            if (coverage < 80) {
+            const coveragePercent = Math.round(coverage * 100);
+            if (coveragePercent < 80) {
                 document.getElementById('foodWarningText').innerHTML = 
                     `Колонисты голодают. Постройте станцию синтеза пищевых наборов, чтобы производства работали на полную мощность. <br>
-                     Нужно ещё: ${neededStations} станций. Покрытие едой: ${coverage}%.`;
+                     Нужно ещё: ${neededStations} станций. Покрытие едой: ${coveragePercent}%.`;
                 document.getElementById('foodWarning').style.display = 'block';
             } else {
                 document.getElementById('foodWarning').style.display = 'none';
@@ -1161,6 +1183,7 @@
                         const isBought = !!purchase;
                         const isAwaiting = status === 'куплено';
                         const available = isItemAvailable(item);
+                        // Для всех зданий действует ограничение: можно купить, только если нет другого здания со статусом "куплено"
                         const disabled = isBought || currentState.team.score < item.price || hasBoughtStatus || !available;
                         let buttonText = 'Купить';
                         if (isBought) {
@@ -1271,8 +1294,13 @@
         }
 
         async function executeBuy() {
-            if (!pendingBuyItemId) return;
-            await buyItem(pendingBuyItemId);
+            if (isBuying) return;
+            isBuying = true;
+            try {
+                await buyItem(pendingBuyItemId);
+            } finally {
+                isBuying = false;
+            }
             closeModal('confirmBuyModal');
             pendingBuyItemId = null;
         }
@@ -2063,6 +2091,7 @@
                 return;
             }
             try {
+                // Доход начисляется внутри advanceEpoch на сервере один раз
                 const formData = new FormData();
                 formData.append('action', 'advanceEpoch');
                 formData.append('password', currentState.adminPassword);
