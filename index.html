@@ -390,7 +390,7 @@
                             <p>Колонизация Юпитера</p>
                         </div>
                     </div>
-                    <div class="version" style="color: var(--text-dim);">v6.14</div>
+                    <div class="version" style="color: var(--text-dim);">v6.15</div>
                 </div>
                 <div style="display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 15px;">
                     <div style="display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; max-width: 400px;">
@@ -790,7 +790,7 @@
     <script>
         // ================= КОНФИГУРАЦИЯ =================
         const CONFIG = {
-            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzbcvfCMV72Zqje3dURDVtjt04ZnGxMXWsAP0OCSOMKWpzmLC7vh4bR0TaCN2v26_4J_A/exec',
+            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxujBdOb0MXRDYDvpK5go1d3cRMkyAaVIavilm47yZnVZInOvXtKRnA0YMbwlq0WtQ3/exec',
             ADMIN_PASSWORD: 'org2026',
             REFRESH_INTERVAL: 30000
         };
@@ -813,7 +813,7 @@
 
         let pendingBuyItemId = null;
         let currentFilter = 'all';
-        let isBuying = false; // флаг для блокировки двойной покупки
+        let isBuying = false;
 
         // ================= ОБЩИЕ ФУНКЦИИ =================
         function showNotification(message, type = 'info') {
@@ -960,7 +960,6 @@
             }
         }
 
-        // Функция для получения эмодзи сытости
         function getFoodEmoji(coverage) {
             if (coverage >= 1) return '😊';
             if (coverage >= 0.8) return '🙂';
@@ -974,10 +973,9 @@
             const epochName = currentState.gameState.name || 'Заря';
             document.getElementById('epochDisplay').innerHTML = `⚡ ${epochName}`;
 
-            // Если эпоха 7 – показываем финальное сообщение на весь экран
             if (epoch === 7) {
                 showFinalMessage();
-                return; // не показываем остальной интерфейс
+                return;
             }
 
             document.getElementById('teamNameHeader').textContent = currentState.team.name;
@@ -986,7 +984,6 @@
 
             const usedEnergy = currentState.purchases.filter(p => p.status === 'функционирует').reduce((sum, p) => sum + (p.energyCost || 0), 0);
 
-            // Расчёт еды и сытости
             const colonists = currentState.team.colonists || 0;
             const food = currentState.team.foodSupply || 0;
             const deficit = Math.max(0, colonists - food);
@@ -1001,11 +998,10 @@
                     <div class="stat-value">${currentState.team.score}</div>
                     <div class="stat-label">Мои импульсы</div>
                 </div>
-                <div class="stat-card ${epoch === 0 ? 'blurred' : ''}">
+                <div class="stat-card">
                     <div class="stat-header"><div class="stat-icon"><i class="fas fa-users"></i></div></div>
                     <div class="stat-value">${currentState.rating.length}</div>
                     <div class="stat-label">Всего команд</div>
-                    ${epoch === 0 ? '<div class="lock-overlay"><i class="fas fa-lock"></i></div>' : ''}
                 </div>
                 <div class="stat-card ${epoch === 0 ? 'blurred' : ''}">
                     <div class="stat-header"><div class="stat-icon"><i class="fas fa-leaf"></i></div></div>
@@ -1056,7 +1052,6 @@
                 updateShopAndInventory(epoch);
             }
 
-            // Предупреждение о еде
             if (coveragePercent < 80) {
                 document.getElementById('foodWarningText').innerHTML = 
                     `Колонисты голодают. Постройте станцию синтеза пищевых наборов, чтобы производства работали на полную мощность. <br>
@@ -1066,7 +1061,6 @@
                 document.getElementById('foodWarning').style.display = 'none';
             }
 
-            // Событие
             if (currentState.team.currentEvent) {
                 document.getElementById('eventText').textContent = currentState.team.currentEvent;
                 document.getElementById('currentEvent').style.display = 'block';
@@ -1074,7 +1068,6 @@
                 document.getElementById('currentEvent').style.display = 'none';
             }
 
-            // Контракт (только после старта)
             if (epoch > 0) {
                 document.getElementById('contractContainer').style.display = 'block';
                 let contractHtml = '';
@@ -1094,7 +1087,6 @@
                 document.getElementById('contractContainer').style.display = 'none';
             }
 
-            // История начислений
             let histHtml = '<table><tr><th>Время</th><th>Импульсы</th><th>Причина</th></tr>';
             if (currentState.transactions.length) {
                 currentState.transactions.slice(0,10).forEach(t => {
@@ -1104,7 +1096,6 @@
             histHtml += '</table>';
             document.getElementById('historyTable').innerHTML = histHtml;
 
-            // Рейтинг команд – показываем только если есть разведпункт
             const hasRevealRating = currentState.purchases.some(p => p.status === 'функционирует' && p.effect && p.effect.revealRating);
             const ratingContainer = document.getElementById('ratingContainer');
             if (hasRevealRating) {
@@ -1151,7 +1142,6 @@
         function updateShopAndInventory(epoch) {
             if (epoch === 0) return;
 
-            // Магазин
             document.getElementById('shopImpulseBalance').textContent = currentState.team.score;
             let shopHtml = '';
             if (currentState.allItems.length) {
@@ -1235,7 +1225,6 @@
             }
             document.getElementById('shopItemsGrid').innerHTML = shopHtml;
 
-            // Инвентарь
             let invHtml = '';
             if (currentState.purchases.length) {
                 currentState.purchases.forEach(item => {
@@ -1253,7 +1242,6 @@
             } else invHtml = '<p>У вас пока нет купленных зданий.</p>';
             document.getElementById('inventoryGrid').innerHTML = invHtml;
 
-            // Финансы
             document.getElementById('investmentsValue').textContent = currentState.team.investments || 0;
             document.getElementById('loanValue').textContent = currentState.team.loan || 0;
 
@@ -1458,7 +1446,6 @@
                 formData.append('action', 'totemContribute');
                 formData.append('teamId', currentState.team.id);
                 formData.append('amount', num);
-                // Пароль не передаём!
                 const res = await fetch(CONFIG.SCRIPT_URL, { method: 'POST', body: formData });
                 const result = await res.json();
                 if (result.success) {
@@ -1527,7 +1514,6 @@
         }
 
         function updateAdminUI() {
-            // Команды
             let teamsHtml = '';
             if (currentState.allTeams.length) {
                 currentState.allTeams.forEach(t => {
@@ -1588,7 +1574,6 @@
             } else eventsHtml = '<tr><td colspan="4">Нет событий</td></tr>';
             document.getElementById('eventsTableBody').innerHTML = eventsHtml;
 
-            // Итоговая таблица
             let finalHtml = '';
             if (currentState.finalScores.length) {
                 currentState.finalScores.forEach((t, i) => {
@@ -1607,7 +1592,6 @@
             }
             document.getElementById('finalScoresBody').innerHTML = finalHtml;
 
-            // Статистика
             document.getElementById('totalTeamsStat').textContent = currentState.allTeams.length;
             const totalImp = currentState.allTeams.reduce((acc, t) => acc + (t.score || 0), 0);
             document.getElementById('totalImpulsesStat').textContent = totalImp;
@@ -2106,7 +2090,6 @@
                 return;
             }
             try {
-                // Доход начисляется внутри advanceEpoch на сервере один раз
                 const formData = new FormData();
                 formData.append('action', 'advanceEpoch');
                 formData.append('password', currentState.adminPassword);
