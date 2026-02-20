@@ -985,7 +985,7 @@
         
             // Расчёт еды и сытости
             const colonists = currentState.team.colonists || 0;
-            const food = currentState.team.foodSupply || 0; // пайки
+            const food = currentState.team.foodSupply || 0; // пайки от всех станций
             const coverage = colonists > 0 ? Math.min(1, food / colonists) : 1; // без умножения на 300
             const f = coverage >= 1 ? 1 : 
                       coverage >= 0.8 ? 0.95 :
@@ -993,7 +993,18 @@
             const foodEmoji = coverage >= 1 ? '😊' :
                               coverage >= 0.8 ? '🙂' :
                               coverage >= 0.6 ? '😐' : '😟';
-        
+            
+            // Предупреждение о голоде (исправлено)
+            const deficit = Math.max(0, colonists - food);
+            const coveragePercent = Math.round(coverage * 100);
+            if (coveragePercent < 80) {
+                document.getElementById('foodWarningText').innerHTML = 
+                    `Колонисты голодают. Постройте станцию синтеза пищевых наборов, чтобы производства работали на полную мощность. <br>
+                     Не хватает ${deficit} еды. Покрытие едой: ${coveragePercent}%.`;
+                document.getElementById('foodWarning').style.display = 'block';
+            } else {
+                document.getElementById('foodWarning').style.display = 'none';
+            }
             const dashboardStats = document.getElementById('dashboardStats');
             dashboardStats.innerHTML = `
                 <div class="stat-card">
@@ -1035,19 +1046,6 @@
                     ${epoch === 0 ? '<div class="lock-overlay"><i class="fas fa-lock"></i></div>' : ''}
                 </div>
             `;
-        
-            // Предупреждение о еде (исправленное)
-            const neededStations = colonists > food ? Math.ceil((colonists - food) / 300) : 0;
-            const coveragePercent = Math.round(coverage * 100);
-            if (coveragePercent < 80) {
-                document.getElementById('foodWarningText').innerHTML = 
-                    `Колонисты голодают. Постройте станцию синтеза пищевых наборов, чтобы производства работали на полную мощность. <br>
-                     Нужно ещё: ${neededStations} станций. Покрытие едой: ${coveragePercent}%.`;
-                document.getElementById('foodWarning').style.display = 'block';
-            } else {
-                document.getElementById('foodWarning').style.display = 'none';
-            }
-
             // Событие
             if (currentState.team.currentEvent) {
                 document.getElementById('eventText').textContent = currentState.team.currentEvent;
@@ -2154,4 +2152,5 @@
     </script>
 </body>
 </html>
+
 
