@@ -176,9 +176,9 @@
             justify-content: center;
             font-size: 30px;
             color: rgba(255,255,255,0.5);
-            backdrop-filter: blur(2px);
             pointer-events: none;
-            filter: none !important; /* отключаем размытие для замка */
+            filter: none !important; /* отключаем наследуемое размытие */
+            backdrop-filter: none;   /* убираем собственное размытие фона */
         }
 
         /* дополнительно: если родитель размыт, замок остаётся чётким */
@@ -2155,4 +2155,5 @@
     </script>
 </body>
 </html>
+
 
