@@ -168,7 +168,6 @@
         }
         .lock-overlay {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.3);
             border-radius: 25px;
             display: flex;
@@ -177,8 +176,8 @@
             font-size: 30px;
             color: rgba(255,255,255,0.5);
             pointer-events: none;
-            filter: none !important; /* отключаем наследуемое размытие */
-            backdrop-filter: none;   /* убираем собственное размытие фона */
+            z-index: 10;
+            box-shadow: 0 0 0 2px red; /* временно для отладки, потом убрать */
         }
 
         /* дополнительно: если родитель размыт, замок остаётся чётким */
@@ -450,7 +449,9 @@
 
                     <!-- Вкладка ДАШБОРД -->
                     <div id="teamDashboardTab" style="display: block;">
-                        <div class="stats-grid" id="dashboardStats"></div>
+                        <div class="stats-grid" id="dashboardStats">
+                            <div id="lockContainer" style="position: relative; grid-column: 1 / -1; height: 0; pointer-events: none;">
+                            </div></div>
 
                         <div id="foodWarning" class="food-warning">
                             <i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i>
@@ -992,45 +993,64 @@
             const foodEmoji = getFoodEmoji(coverage);
 
             const dashboardStats = document.getElementById('dashboardStats');
+            const lockContainer = document.getElementById('lockContainer');
+            lockContainer.innerHTML = ''; // очищаем старые замки
+            
             dashboardStats.innerHTML = `
-                <div class="stat-card">
+                <div class="stat-card" id="stat-impulses">
                     <div class="stat-header"><div class="stat-icon"><i class="fas fa-bolt"></i></div></div>
                     <div class="stat-value">${currentState.team.score}</div>
                     <div class="stat-label">Мои импульсы</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" id="stat-teams">
                     <div class="stat-header"><div class="stat-icon"><i class="fas fa-users"></i></div></div>
                     <div class="stat-value">${currentState.rating.length}</div>
                     <div class="stat-label">Всего команд</div>
                 </div>
-                <div class="stat-card ${epoch === 0 ? 'blurred' : ''}">
+                <div class="stat-card ${epoch === 0 ? 'blurred' : ''}" id="stat-terraform">
                     <div class="stat-header"><div class="stat-icon"><i class="fas fa-leaf"></i></div></div>
                     <div class="stat-value">${currentState.team.terraformIndex || 50}%</div>
                     <div class="stat-label">Терраформинг</div>
-                    ${epoch === 0 ? '<div class="lock-overlay"><i class="fas fa-lock"></i></div>' : ''}
                 </div>
-                <div class="stat-card ${epoch === 0 ? 'blurred' : ''}">
+                <div class="stat-card ${epoch === 0 ? 'blurred' : ''}" id="stat-energy">
                     <div class="stat-header"><div class="stat-icon"><i class="fas fa-bolt"></i></div></div>
                     <div class="stat-value">${usedEnergy} / ${currentState.team.energySlots || 0}</div>
                     <div class="stat-label">Энергия (слоты)</div>
-                    ${epoch === 0 ? '<div class="lock-overlay"><i class="fas fa-lock"></i></div>' : ''}
                 </div>
-                <div class="stat-card ${epoch === 0 ? 'blurred' : ''}">
+                <div class="stat-card ${epoch === 0 ? 'blurred' : ''}" id="stat-food">
                     <div class="stat-header"><div class="stat-icon"><i class="fas fa-utensils"></i></div></div>
                     <div class="stat-value">${colonists} / ${food}</div>
                     <div class="stat-label">Колонисты / Еда</div>
-                    ${epoch === 0 ? '<div class="lock-overlay"><i class="fas fa-lock"></i></div>' : ''}
                 </div>
-                <div class="stat-card ${epoch === 0 ? 'blurred' : ''}">
+                <div class="stat-card ${epoch === 0 ? 'blurred' : ''}" id="stat-satiety">
                     <div class="stat-header"><div class="stat-icon"><i class="fas fa-smile"></i></div></div>
                     <div style="display: flex; align-items: center; gap: 8px; font-size: 32px;">
                         <span class="satiety-emoji">${foodEmoji}</span>
                         <span style="font-size: 24px;">${coveragePercent}%</span>
                     </div>
                     <div class="stat-label">Сытость</div>
-                    ${epoch === 0 ? '<div class="lock-overlay"><i class="fas fa-lock"></i></div>' : ''}
                 </div>
             `;
+            
+            // Добавляем замки в lockContainer для нужных карточек
+            if (epoch === 0) {
+                const cardIds = ['stat-terraform', 'stat-energy', 'stat-food', 'stat-satiety'];
+                cardIds.forEach(id => {
+                    const card = document.getElementById(id);
+                    if (card) {
+                        const rect = card.getBoundingClientRect();
+                        const lock = document.createElement('div');
+                        lock.className = 'lock-overlay';
+                        lock.style.position = 'absolute';
+                        lock.style.left = rect.left + 'px';
+                        lock.style.top = rect.top + 'px';
+                        lock.style.width = rect.width + 'px';
+                        lock.style.height = rect.height + 'px';
+                        lock.innerHTML = '<i class="fas fa-lock"></i>';
+                        lockContainer.appendChild(lock);
+                    }
+                });
+            }
 
             const tabBtns = document.querySelectorAll('#teamScreen .tab-btn');
             tabBtns.forEach((btn, idx) => {
@@ -2155,5 +2175,6 @@
     </script>
 </body>
 </html>
+
 
 
