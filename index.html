@@ -328,6 +328,13 @@
             margin-bottom: 15px;
             display: none;
         }
+        .staff-warning {
+            background: rgba(255, 165, 0, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 15px;
+            display: none;
+        }
         .event-banner {
             background: rgba(78, 84, 245, 0.2);
             border-radius: 10px;
@@ -381,7 +388,7 @@
                             <p>Колонизация Юпитера</p>
                         </div>
                     </div>
-                    <div class="version" style="color: var(--text-dim);">v6.17</div>
+                    <div class="version" style="color: var(--text-dim);">v6.18</div>
                 </div>
                 <div style="display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 15px;">
                     <div style="display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; max-width: 400px;">
@@ -446,6 +453,11 @@
                         <div id="foodWarning" class="food-warning">
                             <i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i>
                             <span id="foodWarningText"></span>
+                        </div>
+
+                        <div id="staffWarning" class="staff-warning">
+                            <i class="fas fa-users" style="color: #ffa500;"></i>
+                            <span id="staffWarningText"></span>
                         </div>
 
                         <div id="currentEvent" class="event-banner">
@@ -689,7 +701,7 @@
         </div>
     </div>
 
-    <!-- Добавление товара -->
+    <!-- Добавление товара (с полем "Персонал требуется") -->
     <div id="addItemModal" class="modal">
         <div class="modal-content">
             <div class="modal-header"><h2>Новое здание</h2><button class="modal-close" onclick="closeModal('addItemModal')">&times;</button></div>
@@ -707,11 +719,12 @@
             <div class="form-group"><label><input type="checkbox" id="newItemUnique"> Уникальное (только одна команда)</label></div>
             <div class="form-group"><label>Макс на команду</label><input type="number" id="newItemMaxPerTeam" class="form-control" value="0"></div>
             <div class="form-group"><label>Эффект (JSON)</label><textarea id="newItemEffect" class="form-control" rows="3">{}</textarea></div>
+            <div class="form-group"><label>Персонал требуется</label><input type="number" id="newItemStaffRequired" class="form-control" value="0"></div>
             <button onclick="addItem()" class="btn btn-primary" style="width:100%;">Добавить</button>
         </div>
     </div>
 
-    <!-- Редактирование товара -->
+    <!-- Редактирование товара (с полем "Персонал требуется") -->
     <div id="editItemModal" class="modal">
         <div class="modal-content">
             <div class="modal-header"><h2>Редактировать здание</h2><button class="modal-close" onclick="closeModal('editItemModal')">&times;</button></div>
@@ -730,6 +743,7 @@
             <div class="form-group"><label><input type="checkbox" id="editItemUnique"> Уникальное</label></div>
             <div class="form-group"><label>Макс на команду</label><input type="number" id="editItemMaxPerTeam" class="form-control"></div>
             <div class="form-group"><label>Эффект (JSON)</label><textarea id="editItemEffect" class="form-control" rows="3"></textarea></div>
+            <div class="form-group"><label>Персонал требуется</label><input type="number" id="editItemStaffRequired" class="form-control"></div>
             <div style="display:flex; gap:10px;"><button onclick="updateItem()" class="btn btn-primary" style="flex:1;">Сохранить</button><button onclick="deleteItem()" class="btn btn-danger" style="flex:1;">Удалить</button></div>
         </div>
     </div>
@@ -781,7 +795,7 @@
     <script>
         // ================= КОНФИГУРАЦИЯ =================
         const CONFIG = {
-            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzISDYAw066q9CWknZ5xl1zPiD6RyJp4ecSB74hYGyhL7gCPVRaBjW8wqwDHhkUtD_euw/exec',
+            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbx54XUnYJWbRx4-ImBUp5PTOaQk1KaigEaG9l6gWACgp9TUPzle34Ynm7XTBQYnC2aivw/exec',
             ADMIN_PASSWORD: 'org2026',
             REFRESH_INTERVAL: 30000
         };
@@ -982,6 +996,17 @@
             const coveragePercent = Math.round(coverage * 100);
             const foodEmoji = getFoodEmoji(coverage);
 
+            // Расчёт требуемого персонала (staffRequired)
+            let requiredStaff = 0;
+            currentState.purchases.forEach(p => {
+                if (p.status === 'функционирует' && 
+                    (p.type === 'добыча' || p.type === 'производство' || p.type === 'бустер' || p.type === 'энергия' || p.type === 'еда')) {
+                    requiredStaff += p.staffRequired || 0;
+                }
+            });
+            const staffDeficit = requiredStaff - colonists;
+            const staffRatio = requiredStaff === 0 ? 1 : Math.min(1, colonists / requiredStaff);
+
             const dashboardStats = document.getElementById('dashboardStats');
             dashboardStats.innerHTML = `
                 <div class="stat-card">
@@ -1033,26 +1058,7 @@
                 </div>
             `;
 
-            const tabBtns = document.querySelectorAll('#teamScreen .tab-btn');
-            tabBtns.forEach((btn, idx) => {
-                if (idx === 0) return;
-                if (epoch === 0) {
-                    btn.style.pointerEvents = 'none';
-                    btn.style.opacity = '0.3';
-                } else {
-                    btn.style.pointerEvents = 'auto';
-                    btn.style.opacity = '1';
-                }
-            });
-
-            if (epoch === 0) {
-                document.getElementById('teamShopTab').innerHTML = '<div class="table-container"><p style="text-align:center;">Магазин откроется после старта эпохи</p></div>';
-                document.getElementById('teamInventoryTab').innerHTML = '<div class="table-container"><p style="text-align:center;">Инвентарь откроется после старта эпохи</p></div>';
-                document.getElementById('teamFinanceTab').innerHTML = '<div class="table-container"><p style="text-align:center;">Финансы откроются после старта эпохи</p></div>';
-            } else {
-                updateShopAndInventory(epoch);
-            }
-
+            // Предупреждение о еде
             if (coveragePercent < 80) {
                 document.getElementById('foodWarningText').innerHTML = 
                     `Колонисты голодают. Постройте станцию синтеза пищевых наборов, чтобы производства работали на полную мощность. <br>
@@ -1062,6 +1068,16 @@
                 document.getElementById('foodWarning').style.display = 'none';
             }
 
+            // Предупреждение о персонале
+            if (staffDeficit > 0) {
+                document.getElementById('staffWarningText').innerHTML = 
+                    `Не хватает ${staffDeficit} работников. Эффективность производств снижена до ${Math.round(staffRatio * 100)}%.`;
+                document.getElementById('staffWarning').style.display = 'block';
+            } else {
+                document.getElementById('staffWarning').style.display = 'none';
+            }
+
+            // Событие
             if (currentState.team.currentEvent) {
                 document.getElementById('eventText').textContent = currentState.team.currentEvent;
                 document.getElementById('currentEvent').style.display = 'block';
@@ -1069,6 +1085,7 @@
                 document.getElementById('currentEvent').style.display = 'none';
             }
 
+            // Контракт (только после старта)
             if (epoch > 0) {
                 document.getElementById('contractContainer').style.display = 'block';
                 let contractHtml = '';
@@ -1088,6 +1105,7 @@
                 document.getElementById('contractContainer').style.display = 'none';
             }
 
+            // История
             let histHtml = '<table><tr><th>Время</th><th>Импульсы</th><th>Причина</th></tr>';
             if (currentState.transactions.length) {
                 currentState.transactions.slice(0,10).forEach(t => {
@@ -1097,6 +1115,7 @@
             histHtml += '</table>';
             document.getElementById('historyTable').innerHTML = histHtml;
 
+            // Рейтинг
             const hasRevealRating = currentState.purchases.some(p => p.status === 'функционирует' && p.effect && p.effect.revealRating);
             const ratingContainer = document.getElementById('ratingContainer');
             if (hasRevealRating) {
@@ -1110,6 +1129,27 @@
                 document.getElementById('ratingTable').innerHTML = rateHtml;
             } else {
                 ratingContainer.style.display = 'none';
+            }
+
+            // Блокировка вкладок до старта
+            const tabBtns = document.querySelectorAll('#teamScreen .tab-btn');
+            tabBtns.forEach((btn, idx) => {
+                if (idx === 0) return;
+                if (epoch === 0) {
+                    btn.style.pointerEvents = 'none';
+                    btn.style.opacity = '0.3';
+                } else {
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.opacity = '1';
+                }
+            });
+
+            if (epoch === 0) {
+                document.getElementById('teamShopTab').innerHTML = '<div class="table-container"><p style="text-align:center;">Магазин откроется после старта эпохи</p></div>';
+                document.getElementById('teamInventoryTab').innerHTML = '<div class="table-container"><p style="text-align:center;">Инвентарь откроется после старта эпохи</p></div>';
+                document.getElementById('teamFinanceTab').innerHTML = '<div class="table-container"><p style="text-align:center;">Финансы откроются после старта эпохи</p></div>';
+            } else {
+                updateShopAndInventory(epoch);
             }
         }
 
@@ -1143,6 +1183,7 @@
         function updateShopAndInventory(epoch) {
             if (epoch === 0) return;
 
+            // Магазин
             document.getElementById('shopImpulseBalance').textContent = currentState.team.score;
             let shopHtml = '';
             if (currentState.allItems.length) {
@@ -1206,6 +1247,7 @@
                         if (item.terraformBonus) detailsHtml += `<div><i class="fas fa-leaf"></i> Терраформинг: ${item.terraformBonus > 0 ? '+' : ''}${item.terraformBonus}%</div>`;
                         if (item.effect && item.effect.income) detailsHtml += `<div><i class="fas fa-coins"></i> Доход: ${item.effect.income} ⚡/сезон</div>`;
                         if (item.effect && item.effect.boostType) detailsHtml += `<div><i class="fas fa-rocket"></i> Бустер: +${item.effect.value*100}% к ${item.effect.boostType}</div>`;
+                        if (item.staffRequired) detailsHtml += `<div><i class="fas fa-users"></i> Требуется персонал: ${item.staffRequired}</div>`;
 
                         shopHtml += `
                             <div class="${cardClass}">
@@ -1226,6 +1268,7 @@
             }
             document.getElementById('shopItemsGrid').innerHTML = shopHtml;
 
+            // Инвентарь
             let invHtml = '';
             if (currentState.purchases.length) {
                 currentState.purchases.forEach(item => {
@@ -1243,6 +1286,7 @@
             } else invHtml = '<p>У вас пока нет купленных зданий.</p>';
             document.getElementById('inventoryGrid').innerHTML = invHtml;
 
+            // Финансы
             document.getElementById('investmentsValue').textContent = currentState.team.investments || 0;
             document.getElementById('loanValue').textContent = currentState.team.loan || 0;
 
@@ -1747,6 +1791,7 @@
             const unique = document.getElementById('newItemUnique').checked;
             const maxPerTeam = parseInt(document.getElementById('newItemMaxPerTeam').value);
             const effect = document.getElementById('newItemEffect').value;
+            const staffRequired = parseInt(document.getElementById('newItemStaffRequired').value) || 0;
 
             if (!name || !price) return showNotification('Введите название и цену', 'error');
             try { JSON.parse(effect); } catch { return showNotification('Эффект должен быть валидным JSON', 'error'); }
@@ -1767,6 +1812,7 @@
             formData.append('unique', unique);
             formData.append('maxPerTeam', maxPerTeam);
             formData.append('effect', effect);
+            formData.append('staffRequired', staffRequired);
             formData.append('password', currentState.adminPassword);
 
             try {
@@ -1800,6 +1846,7 @@
                 document.getElementById('editItemUnique').checked = item.unique || false;
                 document.getElementById('editItemMaxPerTeam').value = item.maxPerTeam || 0;
                 document.getElementById('editItemEffect').value = JSON.stringify(item.effect);
+                document.getElementById('editItemStaffRequired').value = item.staffRequired || 0;
                 document.getElementById('editItemModal').classList.add('active');
             }
         }
@@ -1819,6 +1866,7 @@
             const unique = document.getElementById('editItemUnique').checked;
             const maxPerTeam = parseInt(document.getElementById('editItemMaxPerTeam').value);
             const effect = document.getElementById('editItemEffect').value;
+            const staffRequired = parseInt(document.getElementById('editItemStaffRequired').value) || 0;
 
             if (!name || !price) return showNotification('Заполните поля', 'error');
             try { JSON.parse(effect); } catch { return showNotification('Эффект должен быть валидным JSON', 'error'); }
@@ -1840,6 +1888,7 @@
             formData.append('unique', unique);
             formData.append('maxPerTeam', maxPerTeam);
             formData.append('effect', effect);
+            formData.append('staffRequired', staffRequired);
             formData.append('password', currentState.adminPassword);
 
             try {
