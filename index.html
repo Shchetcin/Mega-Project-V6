@@ -178,8 +178,12 @@
             color: rgba(255,255,255,0.5);
             backdrop-filter: blur(2px);
             pointer-events: none;
-            /* замок не размыт */
-            filter: none;
+            filter: none !important; /* отключаем размытие для замка */
+        }
+
+        /* дополнительно: если родитель размыт, замок остаётся чётким */
+        .stat-card.blurred .lock-overlay {
+            filter: none !important;
         }
 
         .shop-grid {
@@ -386,7 +390,7 @@
                             <p>Колонизация Юпитера</p>
                         </div>
                     </div>
-                    <div class="version" style="color: var(--text-dim);">v6.12</div>
+                    <div class="version" style="color: var(--text-dim);">v6.14</div>
                 </div>
                 <div style="display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 15px;">
                     <div style="display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; max-width: 400px;">
@@ -786,7 +790,7 @@
     <script>
         // ================= КОНФИГУРАЦИЯ =================
         const CONFIG = {
-            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzU7wB_x-QzNmPHCxXUJC1P5Z9WrDyKGyZjQJso8Ujy8Q-LHmoVVJEHVl4tg4YMc690xg/exec',
+            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzbcvfCMV72Zqje3dURDVtjt04ZnGxMXWsAP0OCSOMKWpzmLC7vh4bR0TaCN2v26_4J_A/exec',
             ADMIN_PASSWORD: 'org2026',
             REFRESH_INTERVAL: 30000
         };
@@ -969,42 +973,27 @@
             const epoch = currentState.gameState.epoch || 0;
             const epochName = currentState.gameState.name || 'Заря';
             document.getElementById('epochDisplay').innerHTML = `⚡ ${epochName}`;
-        
+
+            // Если эпоха 7 – показываем финальное сообщение на весь экран
             if (epoch === 7) {
                 showFinalMessage();
-                return;
+                return; // не показываем остальной интерфейс
             }
-        
+
             document.getElementById('teamNameHeader').textContent = currentState.team.name;
             document.getElementById('teamScoreHeader').textContent = currentState.team.score;
             document.getElementById('teamScoreBadge').textContent = currentState.team.score;
-        
-            const usedEnergy = currentState.purchases
-                .filter(p => p.status === 'функционирует')
-                .reduce((sum, p) => sum + (p.energyCost || 0), 0);
-        
+
+            const usedEnergy = currentState.purchases.filter(p => p.status === 'функционирует').reduce((sum, p) => sum + (p.energyCost || 0), 0);
+
             // Расчёт еды и сытости
             const colonists = currentState.team.colonists || 0;
-            const food = currentState.team.foodSupply || 0; // пайки от всех станций
-            const coverage = colonists > 0 ? Math.min(1, food / colonists) : 1; // без умножения на 300
-            const f = coverage >= 1 ? 1 : 
-                      coverage >= 0.8 ? 0.95 :
-                      coverage >= 0.6 ? 0.85 : 0.75;
-            const foodEmoji = coverage >= 1 ? '😊' :
-                              coverage >= 0.8 ? '🙂' :
-                              coverage >= 0.6 ? '😐' : '😟';
-            
-            // Предупреждение о голоде (исправлено)
+            const food = currentState.team.foodSupply || 0;
             const deficit = Math.max(0, colonists - food);
+            const coverage = colonists > 0 ? Math.min(1, food / colonists) : 1;
             const coveragePercent = Math.round(coverage * 100);
-            if (coveragePercent < 80) {
-                document.getElementById('foodWarningText').innerHTML = 
-                    `Колонисты голодают. Постройте станцию синтеза пищевых наборов, чтобы производства работали на полную мощность. <br>
-                     Не хватает ${deficit} еды. Покрытие едой: ${coveragePercent}%.`;
-                document.getElementById('foodWarning').style.display = 'block';
-            } else {
-                document.getElementById('foodWarning').style.display = 'none';
-            }
+            const foodEmoji = getFoodEmoji(coverage);
+
             const dashboardStats = document.getElementById('dashboardStats');
             dashboardStats.innerHTML = `
                 <div class="stat-card">
@@ -1040,12 +1029,43 @@
                     <div class="stat-header"><div class="stat-icon"><i class="fas fa-smile"></i></div></div>
                     <div style="display: flex; align-items: center; gap: 8px; font-size: 32px;">
                         <span class="satiety-emoji">${foodEmoji}</span>
-                        <span style="font-size: 24px;">${Math.round(coverage * 100)}%</span>
+                        <span style="font-size: 24px;">${coveragePercent}%</span>
                     </div>
                     <div class="stat-label">Сытость</div>
                     ${epoch === 0 ? '<div class="lock-overlay"><i class="fas fa-lock"></i></div>' : ''}
                 </div>
             `;
+
+            const tabBtns = document.querySelectorAll('#teamScreen .tab-btn');
+            tabBtns.forEach((btn, idx) => {
+                if (idx === 0) return;
+                if (epoch === 0) {
+                    btn.style.pointerEvents = 'none';
+                    btn.style.opacity = '0.3';
+                } else {
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.opacity = '1';
+                }
+            });
+
+            if (epoch === 0) {
+                document.getElementById('teamShopTab').innerHTML = '<div class="table-container"><p style="text-align:center;">Магазин откроется после старта эпохи</p></div>';
+                document.getElementById('teamInventoryTab').innerHTML = '<div class="table-container"><p style="text-align:center;">Инвентарь откроется после старта эпохи</p></div>';
+                document.getElementById('teamFinanceTab').innerHTML = '<div class="table-container"><p style="text-align:center;">Финансы откроются после старта эпохи</p></div>';
+            } else {
+                updateShopAndInventory(epoch);
+            }
+
+            // Предупреждение о еде
+            if (coveragePercent < 80) {
+                document.getElementById('foodWarningText').innerHTML = 
+                    `Колонисты голодают. Постройте станцию синтеза пищевых наборов, чтобы производства работали на полную мощность. <br>
+                     Не хватает ${deficit} еды. Покрытие едой: ${coveragePercent}%.`;
+                document.getElementById('foodWarning').style.display = 'block';
+            } else {
+                document.getElementById('foodWarning').style.display = 'none';
+            }
+
             // Событие
             if (currentState.team.currentEvent) {
                 document.getElementById('eventText').textContent = currentState.team.currentEvent;
@@ -1100,16 +1120,6 @@
                 ratingContainer.style.display = 'none';
             }
         }
-        function getRequirementText(item) {
-            const id = item.id;
-            if (id <= 5) return 'Доступно';
-            if (id <= 9) return 'Требуется любое здание сезона 1';
-            if (id <= 13) return 'Требуется любое здание сезона 2';
-            if (id <= 17) return 'Требуется любое здание сезона 3';
-            if (id <= 21) return 'Требуется любое здание сезона 4';
-            if (id <= 27) return 'Требуется любое здание сезона 5';
-            return 'Требуется здание 6 сезона';
-        }
 
         function showFinalMessage() {
             const msgDiv = document.createElement('div');
@@ -1158,6 +1168,17 @@
                     return functionalIds.some(fid => fid >= 28 && fid <= 33);
                 }
 
+                function getRequirementText(item) {
+                    const id = item.id;
+                    if (id <= 5) return 'Доступно';
+                    if (id <= 9) return 'Требуется любое здание сезона 1';
+                    if (id <= 13) return 'Требуется любое здание сезона 2';
+                    if (id <= 17) return 'Требуется любое здание сезона 3';
+                    if (id <= 21) return 'Требуется любое здание сезона 4';
+                    if (id <= 27) return 'Требуется любое здание сезона 5';
+                    return 'Требуется здание 6 сезона';
+                }
+
                 const itemsByType = {};
                 currentState.allItems.forEach(item => {
                     const type = item.type || 'другое';
@@ -1178,13 +1199,12 @@
                         const isBought = !!purchase;
                         const isAwaiting = status === 'куплено';
                         const available = isItemAvailable(item);
-                        // Для всех зданий действует ограничение: можно купить, только если нет другого здания со статусом "куплено"
                         const disabled = isBought || currentState.team.score < item.price || hasBoughtStatus || !available;
                         let buttonText = 'Купить';
                         if (isBought) {
                             buttonText = isAwaiting ? 'Ожидает выдачи' : 'Уже куплено';
                         } else if (!available) {
-                            buttonText = 'Требуется развитие';
+                            buttonText = getRequirementText(item);
                         }
                         const cardClass = isAwaiting ? 'product-card pulse-awaiting' : 'product-card';
                         let detailsHtml = '';
@@ -2152,6 +2172,3 @@
     </script>
 </body>
 </html>
-
-
-
