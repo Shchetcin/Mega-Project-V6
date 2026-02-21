@@ -107,6 +107,7 @@
             display: inline-flex; align-items: center; justify-content: center; gap: 6px;
             background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);
             backdrop-filter: blur(5px);
+            touch-action: manipulation;
         }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,0.5); border-color: var(--neon-cyan); }
         .btn-primary { background: linear-gradient(145deg, var(--neon-blue), #3a3fd4); border: none; }
@@ -124,6 +125,7 @@
             padding: 8px 16px; border-radius: 40px; background: transparent;
             border: none; color: var(--text-dim); font-weight: 600; cursor: pointer;
             transition: 0.2s; font-size: 14px; white-space: nowrap;
+            touch-action: manipulation;
         }
         .tab-btn.active { background: var(--neon-blue); color: white; box-shadow: 0 0 12px var(--neon-blue); }
 
@@ -228,6 +230,7 @@
             background: linear-gradient(145deg, var(--neon-blue), #3a3fd4);
             border: none; color: white; font-weight: 600; font-size: 14px;
             cursor: pointer; transition: 0.2s;
+            touch-action: manipulation;
         }
         .btn-buy:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--neon-blue); }
         .btn-buy:disabled { opacity: 0.5; pointer-events: none; }
@@ -343,22 +346,94 @@
             display: none;
         }
 
-        .final-rating {
-            font-size: 24px;
-            text-align: center;
+        .final-panel {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(10px);
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 20px;
-        }
-        .final-rating table {
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-            font-size: 20px;
-        }
-        .final-rating th {
-            font-size: 22px;
+            animation: fadeIn 0.5s;
         }
 
-        /* Стили для смайлика сытости */
+        .final-content {
+            background: var(--card-bg);
+            border-radius: 40px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            border: 2px solid var(--neon-cyan);
+            box-shadow: 0 0 50px var(--neon-cyan);
+            text-align: center;
+        }
+
+        .final-title {
+            font-size: 2rem;
+            color: var(--neon-cyan);
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+
+        .final-stats {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .final-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.05);
+            padding: 15px 20px;
+            border-radius: 50px;
+            font-size: 1.3rem;
+        }
+
+        .final-total {
+            background: linear-gradient(145deg, var(--neon-blue), var(--neon-cyan));
+            color: black;
+            font-weight: bold;
+            box-shadow: 0 0 20px var(--neon-cyan);
+        }
+
+        .final-label {
+            color: var(--text-dim);
+        }
+
+        .final-value {
+            font-weight: 700;
+        }
+
+        .final-place {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            color: var(--neon-green);
+        }
+
+        .timer {
+            background: rgba(0,0,0,0.4);
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--neon-cyan);
+            border: 1px solid var(--neon-cyan);
+            box-shadow: 0 0 10px var(--neon-cyan);
+            letter-spacing: 2px;
+        }
+        .timer.warning {
+            color: #f8961e;
+            border-color: #f8961e;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } }
+
         .satiety-emoji {
             font-size: 32px;
             line-height: 1;
@@ -367,11 +442,26 @@
         }
 
         @media (max-width: 600px) {
-            .header { flex-direction: column; align-items: stretch; }
-            .tabs { justify-content: flex-start; }
-            .dashboard { padding: 15px; }
+            .header { flex-direction: column; align-items: stretch; padding: 10px; }
+            .logo-text h1 { font-size: 18px; }
+            .logo-text p { font-size: 10px; }
+            .user-info { flex-wrap: wrap; justify-content: center; }
+            .impulse-badge { font-size: 12px; padding: 4px 8px; }
+            .tabs { gap: 2px; }
+            .tab-btn { padding: 8px 10px; font-size: 13px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .stat-content { padding: 12px; }
+            .stat-icon { width: 35px; height: 35px; font-size: 18px; }
+            .stat-value { font-size: 24px; }
+            .stat-label { font-size: 10px; }
             .shop-grid { grid-template-columns: 1fr; }
-            .final-rating { font-size: 18px; }
+            .product-card { padding: 15px; }
+            .product-icon { width: 60px; height: 60px; font-size: 30px; }
+            .modal-content { padding: 20px; width: 95%; }
+            .btn { padding: 12px 16px; font-size: 16px; }
+            .timer { font-size: 16px; padding: 4px 8px; }
+            .final-title { font-size: 1.5rem; }
+            .final-stat { font-size: 1rem; padding: 12px; }
         }
     </style>
 </head>
@@ -434,6 +524,7 @@
                     <div class="user-info">
                         <span class="impulse-badge"><i class="fas fa-bolt"></i> <span id="teamScoreBadge">0</span></span>
                         <span id="epochDisplay" style="font-size:12px; background:rgba(255,255,255,0.1); padding:4px 8px; border-radius:20px;">⚡ Заря</span>
+                        <span id="timerDisplay" class="timer">30:00</span>
                         <button onclick="refreshTeamData()" class="btn" style="padding:8px;"><i class="fas fa-sync-alt"></i></button>
                     </div>
                 </div>
@@ -812,13 +903,14 @@
             rating: [],
             contracts: [],
             events: [],
-            gameState: { epoch: 0, name: 'Заря' },
+            gameState: { epoch: 0, name: 'Заря', startTime: null },
             finalScores: []
         };
 
         let pendingBuyItemId = null;
         let currentFilter = 'all';
         let isBuying = false;
+        let timerInterval = null;
 
         // ================= ОБЩИЕ ФУНКЦИИ =================
         function showNotification(message, type = 'info') {
@@ -836,6 +928,9 @@
 
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
+            if (modalId === 'confirmBuyModal') {
+                isBuying = false; // сброс флага при закрытии без покупки
+            }
         }
 
         function logout() {
@@ -846,6 +941,7 @@
             localStorage.removeItem('admin');
             localStorage.removeItem('adminPwd');
             stopAutoRefresh();
+            stopTimer();
             showScreen('loginScreen');
         }
 
@@ -874,6 +970,13 @@
                     currentFilter = this.dataset.type;
                     if (currentState.team) updateTeamUI();
                 });
+            });
+
+            // Обработчик закрытия модалки покупки
+            document.getElementById('confirmBuyModal').addEventListener('click', function(e) {
+                if (e.target.classList.contains('modal-close') || e.target === this) {
+                    closeModal('confirmBuyModal');
+                }
             });
         });
 
@@ -942,7 +1045,7 @@
                 const invData = await invRes.json();
                 const contractsData = await contractsRes.json();
                 const eventsData = eventsRes.ok ? await eventsRes.json() : { success: false };
-                const stateData = stateRes.ok ? await stateRes.json() : { data: { epoch: 0, name: 'Заря' } };
+                const stateData = stateRes.ok ? await stateRes.json() : { data: { epoch: 0, name: 'Заря', startTime: null } };
 
                 if (ratingData.success) {
                     currentState.rating = ratingData.data.rating || [];
@@ -960,9 +1063,44 @@
                 if (stateData.success) currentState.gameState = stateData.data;
 
                 updateTeamUI();
+                startTimerIfNeeded();
             } catch (e) {
                 showNotification('Ошибка загрузки', 'error');
             }
+        }
+
+        function stopTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        function startTimerIfNeeded() {
+            stopTimer();
+            const epoch = currentState.gameState.epoch || 0;
+            if (epoch === 0 || epoch === 7) return;
+            const startTime = currentState.gameState.startTime;
+            if (!startTime) return;
+
+            const updateTimer = () => {
+                const now = Date.now();
+                const elapsed = Math.floor((now - startTime) / 1000);
+                const remaining = 30 * 60 - elapsed;
+                const timerEl = document.getElementById('timerDisplay');
+                if (remaining <= 0) {
+                    timerEl.textContent = '00:00';
+                    stopTimer();
+                    loadTeamData();
+                } else {
+                    const mins = Math.floor(remaining / 60);
+                    const secs = remaining % 60;
+                    const timeStr = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+                    timerEl.textContent = timeStr;
+                    if (remaining < 300) timerEl.classList.add('warning');
+                    else timerEl.classList.remove('warning');
+                }
+            };
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
         }
 
         function getFoodEmoji(coverage) {
@@ -970,6 +1108,48 @@
             if (coverage >= 0.8) return '🙂';
             if (coverage >= 0.6) return '😐';
             return '😟';
+        }
+
+        function showFinalMessage() {
+            fetch(`${CONFIG.SCRIPT_URL}?action=getFinalScores`)
+                .then(r => r.json())
+                .then(res => {
+                    if (!res.success) return;
+                    const finalData = res.data.final;
+                    const myTeam = finalData.find(t => t.id == currentState.team.id);
+                    if (!myTeam) return;
+
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = 'final-panel';
+                    msgDiv.innerHTML = `
+                        <div class="final-content">
+                            <h1 class="final-title">🌌 Итоги колонизации 🌌</h1>
+                            <div class="final-stats">
+                                <div class="final-stat">
+                                    <span class="final-label">Импульсы</span>
+                                    <span class="final-value">${myTeam.score}</span>
+                                </div>
+                                <div class="final-stat">
+                                    <span class="final-label">Индекс терраформинга</span>
+                                    <span class="final-value">${myTeam.terraformIndex}%</span>
+                                </div>
+                                <div class="final-stat">
+                                    <span class="final-label">Коэффициент красоты</span>
+                                    <span class="final-value">${myTeam.beautyFactor}</span>
+                                </div>
+                                <div class="final-stat final-total">
+                                    <span class="final-label">Итоговый балл</span>
+                                    <span class="final-value">${myTeam.finalScore}</span>
+                                </div>
+                            </div>
+                            <div class="final-place">
+                                Ваше место: <strong>${finalData.findIndex(t => t.id == myTeam.id) + 1}</strong> из ${finalData.length}
+                            </div>
+                            <button class="btn btn-primary" onclick="location.reload()">Завершить</button>
+                        </div>
+                    `;
+                    document.body.appendChild(msgDiv);
+                });
         }
 
         function updateTeamUI() {
@@ -1153,33 +1333,6 @@
             }
         }
 
-        function showFinalMessage() {
-            const msgDiv = document.createElement('div');
-            msgDiv.style.position = 'fixed';
-            msgDiv.style.top = '0';
-            msgDiv.style.left = '0';
-            msgDiv.style.width = '100%';
-            msgDiv.style.height = '100%';
-            msgDiv.style.backgroundColor = 'rgba(0,0,0,0.95)';
-            msgDiv.style.zIndex = '2000';
-            msgDiv.style.display = 'flex';
-            msgDiv.style.flexDirection = 'column';
-            msgDiv.style.alignItems = 'center';
-            msgDiv.style.justifyContent = 'center';
-            msgDiv.style.padding = '20px';
-            msgDiv.style.textAlign = 'center';
-            msgDiv.style.fontSize = '24px';
-            msgDiv.style.color = 'white';
-            msgDiv.innerHTML = `
-                <h1 style="color:var(--neon-cyan); margin-bottom:30px;">Уважаемые колонисты!</h1>
-                <p>Все данные симуляции получены.</p>
-                <p>Ваш счёт импульсов: <strong>${currentState.team.score}</strong></p>
-                <p>Индекс терраформирования: <strong>${currentState.team.terraformIndex || 50}%</strong></p>
-                <p style="margin-top:30px;">Ожидайте итоговых результатов.</p>
-            `;
-            document.body.appendChild(msgDiv);
-        }
-
         function updateShopAndInventory(epoch) {
             if (epoch === 0) return;
 
@@ -1331,6 +1484,10 @@
         }
 
         function confirmBuy(itemId) {
+            if (isBuying) {
+                showNotification('Подождите завершения текущей покупки', 'warning');
+                return;
+            }
             const item = currentState.allItems.find(i => i.id === itemId);
             if (!item) return;
             pendingBuyItemId = itemId;
@@ -1344,10 +1501,16 @@
         async function executeBuy() {
             if (isBuying) return;
             isBuying = true;
+            const confirmBtn = document.querySelector('#confirmBuyModal .btn-success');
+            const originalText = confirmBtn.textContent;
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Покупка...';
             try {
                 await buyItem(pendingBuyItemId);
             } finally {
                 isBuying = false;
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = originalText;
             }
             closeModal('confirmBuyModal');
             pendingBuyItemId = null;
@@ -2008,7 +2171,7 @@
                 const data = await res.json();
                 if (data.success && data.data.items) {
                     const items = data.data.items;
-                    let html = '<ul class="inventory-list">';
+                    let html = '<ul class="inventory-list" style="list-style: none; padding:0;">';
                     if (items.length) {
                         items.forEach(item => {
                             let actions = '';
@@ -2017,9 +2180,9 @@
                             } else if (item.status === 'куплено') {
                                 actions = `<button class="btn btn-warning btn-icon" onclick="updatePurchaseStatus(${item.purchaseId}, 'строится')" title="Начать строительство"><i class="fas fa-play"></i></button>`;
                             }
-                            html += `<li class="inventory-item" data-purchase-id="${item.purchaseId}">
-                                <i class="${item.icon}"></i>
-                                <div><strong>${item.name}</strong> — ${item.description}</div>
+                            html += `<li class="inventory-item" data-purchase-id="${item.purchaseId}" style="display:flex; align-items:center; gap:10px; padding:10px; border-bottom:1px solid rgba(255,255,255,0.1);">
+                                <i class="${item.icon}" style="width:30px; color:var(--neon-cyan);"></i>
+                                <div style="flex:1;"><strong>${item.name}</strong> — ${item.description}</div>
                                 <div><span class="status-badge ${item.status}">${item.status}</span></div>
                                 <div>${actions}</div>
                             </li>`;
